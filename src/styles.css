@@ -149,3 +149,12 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
 .signature-pad.disabled { cursor:not-allowed; opacity:.6; }
 .signature-pad-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-top:1px solid #eee8f1; background:#faf8fc; }
 @media (max-width: 640px) { .signature-pad-footer { align-items:stretch; flex-direction:column; } }
+
+.pic-readonly-zone { border:0; padding:0; margin:0; min-width:0; }
+.pic-readonly-zone:disabled { opacity:1; }
+.pic-readonly-zone:disabled .input,
+.pic-readonly-zone:disabled .select,
+.pic-readonly-zone:disabled textarea,
+.pic-readonly-zone:disabled .picker-button { color:#3d3743; -webkit-text-fill-color:#3d3743; background:#f8f6fa; opacity:1; cursor:not-allowed; }
+.pic-readonly-zone:disabled .official-score-option,
+.pic-readonly-zone:disabled .score-option { opacity:1; cursor:not-allowed; }

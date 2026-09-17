@@ -19,8 +19,9 @@ export function sumScores(scores: ScoreMap, ids: string[]) {
 }
 
 export function scoreSummary(obs: Observation, instrument: InstrumentVersion) {
-  const sourceTeacher = Object.keys(obs.finalTeacherScores || {}).length ? obs.finalTeacherScores : obs.selfTeacherScores
-  const sourceStudent = Object.keys(obs.finalStudentScores || {}).length ? obs.finalStudentScores : obs.selfStudentScores
+  // Teacher-submitted scores are immutable source-of-truth. PIC may not override them.
+  const sourceTeacher = obs.selfTeacherScores
+  const sourceStudent = obs.selfStudentScores
   const domains = Object.fromEntries(instrument.domains.map(domain => [domain.id, sumScores(sourceTeacher, domain.itemIds)])) as Record<string, number>
   const teacherTotal = Object.values(domains).reduce((sum, value) => sum + value, 0)
   const teacherMax = instrument.domains.reduce((sum, d) => sum + d.maxScore, 0)
