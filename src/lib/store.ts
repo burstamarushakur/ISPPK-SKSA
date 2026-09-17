@@ -1,7 +1,7 @@
-import { DEFAULT_CLASSES, DEFAULT_SUBJECTS, DEFAULT_TEACHERS, SCHOOL } from './data'
+import { DEFAULT_CLASSES, DEFAULT_EVALUATORS, DEFAULT_SUBJECTS, DEFAULT_TEACHERS, SCHOOL } from './data'
 import { DEFAULT_INSTRUMENTS } from '../instruments/registry'
 import { isSupabaseConfigured, supabase } from './supabase'
-import type { InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from './types'
+import type { Evaluator, InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from './types'
 import { uid } from './utils'
 
 const KEYS = {
@@ -10,7 +10,8 @@ const KEYS = {
   subjects: 'isppk_subjects_v2',
   settings: 'isppk_settings_v2',
   observations: 'isppk_observations_v2',
-  instruments: 'isppk_instruments_v2'
+  instruments: 'isppk_instruments_v2',
+  evaluators: 'isppk_evaluators_v1'
 }
 
 const LEGACY_KEYS = { observations: 'isppk_observations_v1' }
@@ -27,6 +28,7 @@ function mapTeacher(row: any): Teacher {
 }
 function mapClass(row: any): SchoolClass { return { id: row.id, year: row.year, name: row.name, active: row.active } }
 function mapSubject(row: any): Subject { return { id: row.id, name: row.name, active: row.active } }
+function mapEvaluator(row: any): Evaluator { return { id: row.id, name: row.name, position: row.position || '', active: row.active, sortOrder: row.sort_order || 0 } }
 function mapInstrument(row: any): InstrumentVersion {
   const base = DEFAULT_INSTRUMENTS.find(x => x.id === row.id) || {}
   const config = row.config || {}
@@ -44,8 +46,12 @@ function mapInstrument(row: any): InstrumentVersion {
     merged.studentScoreGuide = (base as any).studentScoreGuide
     merged.domains = (base as any).domains
     merged.studentMaxScore = (base as any).studentMaxScore
+    merged.templatePdfPath = (base as any).templatePdfPath
+    merged.studentTemplatePdfPath = (base as any).studentTemplatePdfPath
+    merged.pdfLayoutKey = (base as any).pdfLayoutKey
     merged.totalMaxScore = (base as any).totalMaxScore
     merged.achievementBands = (base as any).achievementBands
+    merged.studentAchievementBands = (base as any).studentAchievementBands
     merged.sourceNote = (base as any).sourceNote
   }
   return {
@@ -67,9 +73,21 @@ function mapObservation(row: any): Observation {
     instrumentYearSnapshot: row.instrument_year_snapshot || fallbackInstrument.year,
     instrumentTitleSnapshot: row.instrument_title_snapshot || fallbackInstrument.shortTitle,
     teacherId: row.teacher_id,
+    evaluatorId: row.evaluator_id || undefined,
+    observerName: row.observer_name || '',
+    observerPosition: row.observer_position || '',
+    observationDate: row.observation_date || '',
+    observationTime: row.observation_time || '',
     teacherNameSnapshot: row.teacher_name_snapshot || '',
     gender: row.gender || '',
+    teacherPhone: row.teacher_phone || '',
+    teacherEmail: row.teacher_email || '',
+    academicQualification: row.academic_qualification || '',
+    professionalQualification: row.professional_qualification || '',
     optionName: row.option_name || '',
+    teachingExperienceYears: row.teaching_experience_years,
+    subjectTeachingExperienceYears: row.subject_teaching_experience_years,
+    specialPosition: row.special_position || '',
     subjectId: row.subject_id || '',
     subjectNameSnapshot: row.subject_name_snapshot || '',
     classId: row.class_id || '',
@@ -78,17 +96,15 @@ function mapObservation(row: any): Observation {
     topic: row.topic || '',
     studentsPresent: row.students_present,
     studentsTotal: row.students_total,
+    studentsMale: row.students_male,
+    studentsFemale: row.students_female,
     pdpTime: row.pdp_time || '',
-    observationDate: row.observation_date || '',
-    observationTime: row.observation_time || '',
     selfTeacherScores: row.self_teacher_scores || {},
     selfStudentScores: row.self_student_scores || {},
     finalTeacherScores: row.final_teacher_scores || {},
     finalStudentScores: row.final_student_scores || {},
     reflection1: row.reflection_1 || '',
     reflection2: row.reflection_2 || '',
-    observerName: row.observer_name || '',
-    observerPosition: row.observer_position || '',
     observerSummary: row.observer_summary || '',
     status: row.status || 'submitted',
     googleFormStatus: row.google_form_status || 'pending',
@@ -107,7 +123,21 @@ function normalizeLocalObservation(input: any): Observation {
     teacherNameSnapshot: input.teacherNameSnapshot || '',
     subjectNameSnapshot: input.subjectNameSnapshot || '',
     classNameSnapshot: input.classNameSnapshot || '',
-    classYearSnapshot: input.classYearSnapshot
+    classYearSnapshot: input.classYearSnapshot,
+    evaluatorId: input.evaluatorId,
+    observerName: input.observerName || '',
+    observerPosition: input.observerPosition || '',
+    observationDate: input.observationDate || '',
+    observationTime: input.observationTime || '',
+    teacherPhone: input.teacherPhone || '',
+    teacherEmail: input.teacherEmail || '',
+    academicQualification: input.academicQualification || '',
+    professionalQualification: input.professionalQualification || '',
+    teachingExperienceYears: input.teachingExperienceYears ?? null,
+    subjectTeachingExperienceYears: input.subjectTeachingExperienceYears ?? null,
+    specialPosition: input.specialPosition || '',
+    studentsMale: input.studentsMale ?? null,
+    studentsFemale: input.studentsFemale ?? null
   }
 }
 
@@ -138,6 +168,29 @@ export async function saveInstrumentVersion(item: InstrumentVersion) {
   const idx = list.findIndex(x => x.id === item.id)
   if (idx >= 0) list[idx] = item; else list.push(item)
   save(KEYS.instruments, list)
+}
+
+export async function getEvaluators(): Promise<Evaluator[]> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase.from('evaluators').select('*').order('sort_order')
+    if (error) throw error
+    return (data || []).map(mapEvaluator)
+  }
+  const data = load<Evaluator[]>(KEYS.evaluators, DEFAULT_EVALUATORS)
+  if (!localStorage.getItem(KEYS.evaluators)) save(KEYS.evaluators, data)
+  return data
+}
+
+export async function saveEvaluator(item: Evaluator) {
+  if (isSupabaseConfigured && supabase) {
+    const row = { id: item.id.startsWith('evaluator-') ? undefined : item.id, name:item.name, position:item.position, active:item.active, sort_order:item.sortOrder }
+    const { error } = item.id.startsWith('evaluator-') ? await supabase.from('evaluators').insert(row) : await supabase.from('evaluators').upsert(row)
+    if (error) throw error
+    return
+  }
+  const list = await getEvaluators(); const idx=list.findIndex(x=>x.id===item.id)
+  if(idx>=0) list[idx]=item; else list.push({...item,id:uid()})
+  save(KEYS.evaluators,list)
 }
 
 export async function getTeachers(): Promise<Teacher[]> {
@@ -211,7 +264,7 @@ export async function getSchoolSettings(): Promise<SchoolSettings> {
   if (isSupabaseConfigured && supabase) {
     const { data, error } = await supabase.from('school_settings').select('*').limit(1).maybeSingle()
     if (error) throw error
-    if (data) return { schoolCode: data.school_code, schoolName: data.school_name, ppd: data.ppd, state: data.state, officialEmail: data.official_email || '' }
+    if (data) return { schoolCode:data.school_code, schoolName:data.school_name, address:data.address||'', phone:data.phone||'', fax:data.fax||'', officialEmail:data.official_email||'', grade:data.grade||'', schoolType:data.school_type||'', location:data.location||'', ppd:data.ppd, state:data.state, schoolProgram:data.school_program||'' }
   }
   const data = load<SchoolSettings>(KEYS.settings, SCHOOL)
   if (!localStorage.getItem(KEYS.settings)) save(KEYS.settings, data)
@@ -220,7 +273,7 @@ export async function getSchoolSettings(): Promise<SchoolSettings> {
 
 export async function saveSchoolSettings(s: SchoolSettings) {
   if (isSupabaseConfigured && supabase) {
-    const { error } = await supabase.from('school_settings').upsert({ id: 1, school_code: s.schoolCode, school_name: s.schoolName, ppd: s.ppd, state: s.state, official_email: s.officialEmail })
+    const { error } = await supabase.from('school_settings').upsert({ id:1, school_code:s.schoolCode, school_name:s.schoolName, address:s.address, phone:s.phone, fax:s.fax, official_email:s.officialEmail, grade:s.grade, school_type:s.schoolType, location:s.location, ppd:s.ppd, state:s.state, school_program:s.schoolProgram })
     if (error) throw error
     return
   }
@@ -251,10 +304,20 @@ export async function saveObservation(obs: Observation) {
       instrument_version_id: obs.instrumentVersionId,
       instrument_year_snapshot: obs.instrumentYearSnapshot,
       instrument_title_snapshot: obs.instrumentTitleSnapshot,
+      evaluator_id: obs.evaluatorId || null,
+      observer_name: obs.observerName,
+      observer_position: obs.observerPosition,
       teacher_id: obs.teacherId,
       teacher_name_snapshot: obs.teacherNameSnapshot || '',
       gender: obs.gender || null,
+      teacher_phone: obs.teacherPhone,
+      teacher_email: obs.teacherEmail,
+      academic_qualification: obs.academicQualification,
+      professional_qualification: obs.professionalQualification,
       option_name: obs.optionName,
+      teaching_experience_years: obs.teachingExperienceYears,
+      subject_teaching_experience_years: obs.subjectTeachingExperienceYears,
+      special_position: obs.specialPosition,
       subject_id: obs.subjectId || null,
       subject_name_snapshot: obs.subjectNameSnapshot || '',
       class_id: obs.classId || null,
@@ -263,6 +326,8 @@ export async function saveObservation(obs: Observation) {
       topic: obs.topic,
       students_present: obs.studentsPresent,
       students_total: obs.studentsTotal,
+      students_male: obs.studentsMale,
+      students_female: obs.studentsFemale,
       pdp_time: obs.pdpTime || null,
       observation_date: obs.observationDate || null,
       observation_time: obs.observationTime || null,
@@ -272,8 +337,6 @@ export async function saveObservation(obs: Observation) {
       final_student_scores: obs.finalStudentScores,
       reflection_1: obs.reflection1,
       reflection_2: obs.reflection2,
-      observer_name: obs.observerName,
-      observer_position: obs.observerPosition,
       observer_summary: obs.observerSummary,
       status: obs.status,
       google_form_status: obs.googleFormStatus,

@@ -21,18 +21,23 @@ export function sumScores(scores: ScoreMap, ids: string[]) {
 export function scoreSummary(obs: Observation, instrument: InstrumentVersion) {
   const sourceTeacher = Object.keys(obs.finalTeacherScores || {}).length ? obs.finalTeacherScores : obs.selfTeacherScores
   const sourceStudent = Object.keys(obs.finalStudentScores || {}).length ? obs.finalStudentScores : obs.selfStudentScores
-  const domains = Object.fromEntries(
-    instrument.domains.map(domain => [domain.id, sumScores(sourceTeacher, domain.itemIds)])
-  ) as Record<string, number>
+  const domains = Object.fromEntries(instrument.domains.map(domain => [domain.id, sumScores(sourceTeacher, domain.itemIds)])) as Record<string, number>
   const teacherTotal = Object.values(domains).reduce((sum, value) => sum + value, 0)
+  const teacherMax = instrument.domains.reduce((sum, d) => sum + d.maxScore, 0)
+  const teacherPercent = teacherMax > 0 ? Math.round((teacherTotal / teacherMax) * 10000) / 100 : 0
   const student = sumScores(sourceStudent, instrument.studentRubric.map(item => item.id))
+  const studentPercent = instrument.studentMaxScore > 0 ? Math.round((student / instrument.studentMaxScore) * 10000) / 100 : 0
   const total = teacherTotal + student
   const percent = instrument.totalMaxScore > 0 ? Math.round((total / instrument.totalMaxScore) * 10000) / 100 : 0
-  return { domains, teacherTotal, student, total, maxTotal: instrument.totalMaxScore, percent }
+  return { domains, teacherTotal, teacherMax, teacherPercent, student, studentMax: instrument.studentMaxScore, studentPercent, total, maxTotal: instrument.totalMaxScore, percent }
 }
 
 export function achievementLabel(percent: number, instrument: InstrumentVersion) {
   return instrument.achievementBands.find(b => percent >= b.min && percent <= b.max)?.label || ''
+}
+export function studentAchievementLabel(percent: number, instrument: InstrumentVersion) {
+  const bands = instrument.studentAchievementBands || instrument.achievementBands
+  return bands.find(b => percent >= b.min && percent <= b.max)?.label || ''
 }
 
 export function attendanceBucket(n: number | null) {

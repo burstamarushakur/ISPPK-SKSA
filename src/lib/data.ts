@@ -1,12 +1,32 @@
-import type { SchoolClass, SchoolSettings, Subject, Teacher } from './types'
+import type { Evaluator, SchoolClass, SchoolSettings, Subject, Teacher } from './types'
 
 export const SCHOOL: SchoolSettings = {
   schoolCode: 'JBA5095',
   schoolName: 'SEKOLAH KEBANGSAAN SUNGAI ABONG',
+  address: '',
+  phone: '',
+  fax: '',
+  officialEmail: '',
+  grade: '',
+  schoolType: '',
+  location: '',
   ppd: 'MUAR',
   state: 'JOHOR',
-  officialEmail: ''
+  schoolProgram: ''
 }
+
+export const DEFAULT_EVALUATORS: Evaluator[] = [
+  { id:'evaluator-01', name:'SITI ZALEHA BTE RAMLAN', position:'PENGETUA/GURU BESAR', active:true, sortOrder:1 },
+  { id:'evaluator-02', name:'NADZLIN HAFIZA BINTI MOHD YASIN', position:'PENOLONG KANAN', active:true, sortOrder:2 },
+  { id:'evaluator-03', name:'ABD AZIZ BIN ABDUL RAHMAN', position:'PENOLONG PPD', active:true, sortOrder:3 },
+  { id:'evaluator-04', name:'DALMAN BIN DASIRON', position:'PENOLONG KANAN HEM', active:true, sortOrder:4 },
+  { id:'evaluator-05', name:'HUZIL BIN TALIB', position:'PENOLONG PPD', active:true, sortOrder:5 },
+  { id:'evaluator-06', name:'ZURIANA BINTI KAMARUDIN', position:'PENOLONG KANAN KOKURIKULUM', active:true, sortOrder:6 },
+  { id:'evaluator-07', name:'MARDIANA BT SAMSURY', position:'GURU AKADEMIK BIASA/GURU PENOLONG', active:true, sortOrder:7 },
+  { id:'evaluator-08', name:'MUZLEHA BINTI MD MUKEAR @ MD MUKIAR', position:'GURU AKADEMIK BIASA/GURU PENOLONG', active:true, sortOrder:8 },
+  { id:'evaluator-09', name:'NORLIZA BTE TAIB', position:'GURU AKADEMIK BIASA/GURU PENOLONG', active:true, sortOrder:9 },
+  { id:'evaluator-10', name:'ERDALINA BINTI RAMLI', position:'GURU PENDIDIKAN ISLAM SEKOLAH RENDAH', active:true, sortOrder:10 }
+]
 
 const rawTeachers: Array<[string, 'Lelaki' | 'Perempuan', number]> = [
   ['SITI ZALEHA BINTI RAMLAN', 'Perempuan', 1],

@@ -142,3 +142,4 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
   .official-score-option:last-child { border-bottom:0; }
 }
 .achievement-active td { background:#f0e9f8; font-weight:700; }
+.student-item-ref { display:inline-flex; margin-left:10px; padding:3px 7px; border-radius:999px; background:#f0eaf6; color:#5c3b8d; font-size:11px; font-weight:800; }

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { picIsLoggedIn, picLogin, picLogout } from '../lib/auth'
-import { deleteObservation, getClasses, getInstrumentVersions, getObservations, getSchoolSettings, getSubjects, getTeachers, saveClass, saveInstrumentVersion, saveSchoolSettings, saveSubject, saveTeacher } from '../lib/store'
-import type { InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from '../lib/types'
+import { deleteObservation, getClasses, getEvaluators, getInstrumentVersions, getObservations, getSchoolSettings, getSubjects, getTeachers, saveClass, saveEvaluator, saveInstrumentVersion, saveSchoolSettings, saveSubject, saveTeacher } from '../lib/store'
+import type { Evaluator, InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from '../lib/types'
 import { cloneInstrumentForYear } from '../instruments/registry'
 import { formatDateMY, scoreSummary, uid, upper } from '../lib/utils'
 
@@ -12,10 +12,11 @@ export default function Pic() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [tab, setTab] = useState<'records'|'versions'|'teachers'|'classes'|'subjects'|'school'>('records')
+  const [tab, setTab] = useState<'records'|'versions'|'teachers'|'evaluators'|'classes'|'subjects'|'school'>('records')
   const [obs, setObs] = useState<Observation[]>([])
   const [instruments, setInstruments] = useState<InstrumentVersion[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [evaluators, setEvaluators] = useState<Evaluator[]>([])
   const [classes, setClasses] = useState<SchoolClass[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [school, setSchool] = useState<SchoolSettings | null>(null)
@@ -24,8 +25,8 @@ export default function Pic() {
   const navigate = useNavigate()
 
   const load = async () => {
-    const [o,iv,t,c,s,sc] = await Promise.all([getObservations(), getInstrumentVersions(), getTeachers(), getClasses(), getSubjects(), getSchoolSettings()])
-    setObs(o); setInstruments(iv); setTeachers(t); setClasses(c); setSubjects(s); setSchool(sc)
+    const [o,iv,t,e,c,s,sc] = await Promise.all([getObservations(), getInstrumentVersions(), getTeachers(), getEvaluators(), getClasses(), getSubjects(), getSchoolSettings()])
+    setObs(o); setInstruments(iv); setTeachers(t); setEvaluators(e); setClasses(c); setSubjects(s); setSchool(sc)
   }
   useEffect(() => { picIsLoggedIn().then(v => { setAuthed(v); if (v) load().catch(e=>setError(e.message)) }) }, [])
 
@@ -63,7 +64,7 @@ export default function Pic() {
   </div></main>
 
   const counts = { submitted: obs.filter(x=>x.status==='submitted').length, verified: obs.filter(x=>x.status==='verified').length, pending: obs.filter(x=>x.googleFormStatus==='pending').length }
-  const tabs: Array<[typeof tab,string]> = [['records','Rekod'],['versions','Versi Instrumen'],['teachers','Guru'],['classes','Kelas'],['subjects','Mata Pelajaran'],['school','Sekolah']]
+  const tabs: Array<[typeof tab,string]> = [['records','Rekod'],['versions','Versi Instrumen'],['teachers','Guru'],['evaluators','Pemantau'],['classes','Kelas'],['subjects','Mata Pelajaran'],['school','Sekolah']]
   const years = Array.from(new Set([...instruments.map(x=>x.year), ...obs.map(x=>x.instrumentYearSnapshot)])).sort((a,b)=>b-a)
 
   return <main className="container">
@@ -75,13 +76,14 @@ export default function Pic() {
       <div className="summary-bar"><div className="metric"><span>Semua Rekod</span><strong>{obs.length}</strong></div><div className="metric"><span>Menunggu Semakan</span><strong>{counts.submitted}</strong></div><div className="metric"><span>Disahkan</span><strong>{counts.verified}</strong></div><div className="metric"><span>Belum Google Form</span><strong>{counts.pending}</strong></div><div className="metric"><span>Versi Aktif</span><strong>{instruments.filter(x=>x.active).length}</strong></div></div>
       <div className="card" style={{marginBottom:14}}><div className="form-grid"><div className="field"><label>Cari rekod</label><input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nama guru, mata pelajaran atau topik..."/></div><div className="field"><label>Tahun Instrumen</label><select className="select" value={yearFilter} onChange={e=>setYearFilter(e.target.value)}><option value="all">Semua tahun</option>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></div></div></div>
       <div className="table-wrap"><table><thead><tr><th>Tahun</th><th>Guru</th><th>Tarikh</th><th>Subjek / Kelas</th><th>Skor</th><th>Status</th><th>Google Form</th><th></th></tr></thead><tbody>
-        {filtered.map(o=>{const t=teachers.find(x=>x.id===o.teacherId);const c=classes.find(x=>x.id===o.classId);const s=subjects.find(x=>x.id===o.subjectId);const iv=instruments.find(x=>x.id===o.instrumentVersionId);const sc=iv?scoreSummary(o,iv):null;return <tr key={o.id}><td><span className="version-chip">{o.instrumentYearSnapshot}</span></td><td><strong>{t?.name||o.teacherNameSnapshot||'Guru'}</strong><div className="helper">{o.topic}</div></td><td>{formatDateMY(o.observationDate)}</td><td>{s?.name||o.subjectNameSnapshot}<div className="helper">{c?`TAHUN ${c.year} - ${c.name}`:o.classNameSnapshot}</div></td><td><strong>{sc?`${sc.total}/${sc.maxTotal}`:'—'}</strong></td><td><span className={`status status-${o.status}`}>{o.status==='verified'?'DISAHKAN':o.status==='submitted'?'MENUNGGU':'DRAF'}</span></td><td>{o.googleFormStatus==='sent'?'✅ SUDAH':'⏳ BELUM'}</td><td><div className="toolbar"><button className="btn btn-secondary" onClick={()=>navigate(`/pic/rekod/${o.id}`)}>Buka</button><button className="btn btn-delete-record" onClick={()=>removeRecord(o)}>Padam</button></div></td></tr>})}
+        {filtered.map(o=>{const t=teachers.find(x=>x.id===o.teacherId);const c=classes.find(x=>x.id===o.classId);const s=subjects.find(x=>x.id===o.subjectId);const iv=instruments.find(x=>x.id===o.instrumentVersionId);const sc=iv?scoreSummary(o,iv):null;return <tr key={o.id}><td><span className="version-chip">{o.instrumentYearSnapshot}</span></td><td><strong>{t?.name||o.teacherNameSnapshot||'Guru'}</strong><div className="helper">{o.topic}</div></td><td>{formatDateMY(o.observationDate)}</td><td>{s?.name||o.subjectNameSnapshot}<div className="helper">{c?`TAHUN ${c.year} - ${c.name}`:o.classNameSnapshot}</div></td><td><strong>{sc?`G ${sc.teacherTotal}/${sc.teacherMax}`:'—'}</strong><div className="helper">{sc?`M ${sc.student}/${sc.studentMax}`:''}</div></td><td><span className={`status status-${o.status}`}>{o.status==='verified'?'DISAHKAN':o.status==='submitted'?'MENUNGGU':'DRAF'}</span></td><td>{o.googleFormStatus==='sent'?'✅ SUDAH':'⏳ BELUM'}</td><td><div className="toolbar"><button className="btn btn-secondary" onClick={()=>navigate(`/pic/rekod/${o.id}`)}>Buka</button><button className="btn btn-delete-record" onClick={()=>removeRecord(o)}>Padam</button></div></td></tr>})}
         {filtered.length===0 && <tr><td colSpan={8}><div className="empty">Belum ada rekod.</div></td></tr>}
       </tbody></table></div>
     </>}
 
     {tab==='versions' && <InstrumentVersionsPanel items={instruments} refresh={async()=>setInstruments(await getInstrumentVersions())}/>} 
     {tab==='teachers' && <MasterTeachers items={teachers} refresh={async()=>setTeachers(await getTeachers())}/>} 
+    {tab==='evaluators' && <MasterEvaluators items={evaluators} refresh={async()=>setEvaluators(await getEvaluators())}/>} 
     {tab==='classes' && <MasterClasses items={classes} refresh={async()=>setClasses(await getClasses())}/>} 
     {tab==='subjects' && <MasterSubjects items={subjects} refresh={async()=>setSubjects(await getSubjects())}/>} 
     {tab==='school' && school && <SchoolPanel value={school} onSaved={async()=>setSchool(await getSchoolSettings())}/>} 
@@ -148,9 +150,21 @@ function MasterSubjects({items,refresh}:{items:Subject[],refresh:()=>Promise<voi
   return <div className="card"><div className="section-title"><div><h2>Master Mata Pelajaran</h2><p>Guru hanya melihat mata pelajaran aktif dalam dropdown.</p></div><button className="btn btn-primary" onClick={()=>setEdit(blank)}>+ Tambah</button></div><div className="table-wrap"><table><thead><tr><th>Mata Pelajaran</th><th>Status</th><th></th></tr></thead><tbody>{[...items].sort((a,b)=>a.name.localeCompare(b.name)).map(s=><tr key={s.id}><td><strong>{s.name}</strong></td><td>{s.active?'Aktif':'Tidak aktif'}</td><td><button className="btn btn-secondary" onClick={()=>setEdit({...s})}>Edit</button></td></tr>)}</tbody></table></div>{edit&&<div className="modal-backdrop"><form className="modal" onSubmit={submit}><h2>Edit Mata Pelajaran</h2><div className="field"><label>Nama</label><input className="input" value={edit.name} onChange={e=>setEdit({...edit,name:e.target.value})} required/></div><label style={{display:'block',marginTop:14}}><input type="checkbox" checked={edit.active} onChange={e=>setEdit({...edit,active:e.target.checked})}/> Aktif</label><div className="toolbar" style={{marginTop:14}}><button type="button" className="btn btn-secondary" onClick={()=>setEdit(null)}>Batal</button><button className="btn btn-primary">Simpan</button></div></form></div>}</div>
 }
 
+function MasterEvaluators({items,refresh}:{items:Evaluator[],refresh:()=>Promise<void>}) {
+  const blank:Evaluator={id:`evaluator-${uid()}`,name:'',position:'',active:true,sortOrder:999}
+  const [edit,setEdit]=useState<Evaluator|null>(null); const [error,setError]=useState('')
+  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(!edit)return;setError('');try{await saveEvaluator({...edit,name:upper(edit.name.trim()),position:upper(edit.position.trim())});setEdit(null);await refresh()}catch(err:any){setError(err.message)}}
+  return <div className="card"><div className="section-title"><div><h2>Master Pemantau / Pegawai Penilai</h2><p>Senarai ini datang daripada kolum Pegawai Penilai PBPPP. Ia tidak dikunci kepada PYD tertentu.</p></div><button className="btn btn-primary" onClick={()=>setEdit(blank)}>+ Tambah Pemantau</button></div>{error&&<div className="notice error">{error}</div>}<div className="table-wrap"><table><thead><tr><th>#</th><th>Nama</th><th>Jawatan</th><th>Status</th><th></th></tr></thead><tbody>{[...items].sort((a,b)=>a.sortOrder-b.sortOrder).map((x,i)=><tr key={x.id}><td>{i+1}</td><td><strong>{x.name}</strong></td><td>{x.position}</td><td>{x.active?'Aktif':'Tidak aktif'}</td><td><button className="btn btn-secondary" onClick={()=>setEdit({...x})}>Edit</button></td></tr>)}</tbody></table></div>{edit&&<div className="modal-backdrop"><form className="modal" onSubmit={submit}><h2>Edit Pemantau</h2><div className="grid"><div className="field"><label>Nama</label><input className="input" value={edit.name} onChange={e=>setEdit({...edit,name:e.target.value})} required/></div><div className="field"><label>Jawatan</label><input className="input" value={edit.position} onChange={e=>setEdit({...edit,position:e.target.value})} required/></div><label><input type="checkbox" checked={edit.active} onChange={e=>setEdit({...edit,active:e.target.checked})}/> Aktif</label><div className="toolbar"><button type="button" className="btn btn-secondary" onClick={()=>setEdit(null)}>Batal</button><button className="btn btn-primary">Simpan</button></div></div></form></div>}</div>
+}
+
 function SchoolPanel({value,onSaved}:{value:SchoolSettings,onSaved:()=>Promise<void>}) {
   const [edit,setEdit]=useState(value); const [saved,setSaved]=useState(false)
   useEffect(()=>setEdit(value),[value])
-  const submit=async(e:React.FormEvent)=>{e.preventDefault();await saveSchoolSettings({...edit,schoolCode:upper(edit.schoolCode),schoolName:upper(edit.schoolName),ppd:upper(edit.ppd),state:upper(edit.state)});await onSaved();setSaved(true);setTimeout(()=>setSaved(false),2000)}
-  return <form className="card" onSubmit={submit}><h2>Profil Sekolah</h2>{saved&&<div className="notice success" style={{marginBottom:12}}>Disimpan.</div>}<div className="form-grid"><div className="field"><label>Kod Sekolah</label><input className="input" value={edit.schoolCode} onChange={e=>setEdit({...edit,schoolCode:e.target.value})}/></div><div className="field"><label>Nama Sekolah</label><input className="input" value={edit.schoolName} onChange={e=>setEdit({...edit,schoolName:e.target.value})}/></div><div className="field"><label>PPD</label><input className="input" value={edit.ppd} onChange={e=>setEdit({...edit,ppd:e.target.value})}/></div><div className="field"><label>Negeri</label><input className="input" value={edit.state} onChange={e=>setEdit({...edit,state:e.target.value})}/></div><div className="field span-2"><label>E-mel Rasmi Sekolah</label><input className="input" type="email" value={edit.officialEmail} onChange={e=>setEdit({...edit,officialEmail:e.target.value})}/></div></div><div className="toolbar" style={{marginTop:16}}><button className="btn btn-primary">Simpan Profil</button></div></form>
+  const submit=async(e:React.FormEvent)=>{e.preventDefault();await saveSchoolSettings({...edit,schoolCode:upper(edit.schoolCode),schoolName:upper(edit.schoolName),address:upper(edit.address),grade:upper(edit.grade),schoolType:upper(edit.schoolType),location:upper(edit.location),ppd:upper(edit.ppd),state:upper(edit.state),schoolProgram:upper(edit.schoolProgram)});await onSaved();setSaved(true);setTimeout(()=>setSaved(false),2000)}
+  return <form className="card" onSubmit={submit}><h2>Profil Sekolah</h2><p className="helper">Lengkapkan semua medan supaya Bahagian B pada borang Guru dan Murid terisi penuh.</p>{saved&&<div className="notice success" style={{marginBottom:12}}>Disimpan.</div>}<div className="form-grid">
+    <div className="field"><label>1. Nama Sekolah</label><input className="input" value={edit.schoolName} onChange={e=>setEdit({...edit,schoolName:e.target.value})}/></div><div className="field"><label>2. Alamat Sekolah</label><input className="input" value={edit.address} onChange={e=>setEdit({...edit,address:e.target.value})}/></div>
+    <div className="field"><label>3. No. Tel.</label><input className="input" value={edit.phone} onChange={e=>setEdit({...edit,phone:e.target.value})}/></div><div className="field"><label>4. No. Faks</label><input className="input" value={edit.fax} onChange={e=>setEdit({...edit,fax:e.target.value})}/></div>
+    <div className="field span-2"><label>5. E-mel</label><input className="input" type="email" value={edit.officialEmail} onChange={e=>setEdit({...edit,officialEmail:e.target.value})}/></div><div className="field"><label>6. Kod Sekolah</label><input className="input" value={edit.schoolCode} onChange={e=>setEdit({...edit,schoolCode:e.target.value})}/></div><div className="field"><label>7. Gred Sekolah</label><input className="input" value={edit.grade} onChange={e=>setEdit({...edit,grade:e.target.value})}/></div>
+    <div className="field"><label>8. Jenis Sekolah</label><input className="input" value={edit.schoolType} onChange={e=>setEdit({...edit,schoolType:e.target.value})}/></div><div className="field"><label>9. Lokasi Sekolah</label><input className="input" value={edit.location} onChange={e=>setEdit({...edit,location:e.target.value})}/></div><div className="field"><label>10. PPD</label><input className="input" value={edit.ppd} onChange={e=>setEdit({...edit,ppd:e.target.value})}/></div><div className="field"><label>11. Negeri</label><input className="input" value={edit.state} onChange={e=>setEdit({...edit,state:e.target.value})}/></div><div className="field span-2"><label>12. Program Sekolah</label><input className="input" value={edit.schoolProgram} onChange={e=>setEdit({...edit,schoolProgram:e.target.value})}/></div>
+  </div><div className="toolbar" style={{marginTop:16}}><button className="btn btn-primary">Simpan Profil</button></div></form>
 }

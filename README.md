@@ -122,3 +122,10 @@ Extension dibina selepas webapp/database stabil. Ia akan membaca versi instrumen
 - Bahagian H/I menggunakan soalan/refleksi/rumusan rasmi.
 - PDF kekal menggunakan template rasmi 14 muka surat.
 - Padam rekod tersedia hanya dalam dashboard/rekod PIC dan masih dilindungi RLS Supabase.
+
+
+## v2.3.0 — borang Guru/Murid penuh
+- Bahagian A-D ikut borang Guru/Murid yang dibekalkan, termasuk Bahagian C Maklumat Guru Yang Dicerap lengkap.
+- Rubrik Murid menggunakan 14 item, maksimum 70.
+- Pemantau dipilih daripada master Pegawai Penilai PBPPP dan tidak dikunci mengikut PYD.
+- PIC boleh urus master Pemantau serta memadam rekod.
