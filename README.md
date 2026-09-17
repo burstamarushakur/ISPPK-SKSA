@@ -65,17 +65,15 @@ PIN PIC demo lalai: `2468` (ubah melalui `VITE_DEMO_PIC_PIN`).
 
 ## Supabase
 
-Backend production menggunakan project Supabase **ISPPK SKSA** yang berasingan daripada project Kokurikulum. Schema adalah multi-tahun.
+Migration `supabase/migrations/001_init.sql` kini multi-tahun dan mewujudkan jadual `instrument_versions` serta FK `observations.instrument_version_id`.
 
-Migration:
+Jangan jalankan migration ini pada project Kokurikulum. Gunakan project Supabase ISPPK yang berasingan.
 
-1. `001_init.sql` - schema utama, RLS, seed 2026, 45 guru, 18 kelas dan subjek.
-2. `002_keepalive_activity.sql` - heartbeat `pg_cron` setiap 6 jam sebagai perlindungan best-effort terhadap inactivity pada Free plan.
-3. `003_security_and_performance_hardening.sql` - hardening RLS/functions, private heartbeat dan indeks FK.
+Selepas project ISPPK baharu diwujudkan:
 
-> Supabase Free masih mempunyai polisi auto-pause di peringkat platform. Heartbeat membantu menghasilkan aktiviti berkala tetapi bukan jaminan rasmi; plan berbayar ialah satu-satunya jaminan rasmi tiada auto-pause.
-
-Cipta akaun PIC dalam Supabase Authentication, kemudian promosikan akaun tersebut:
+1. Jalankan `supabase/migrations/001_init.sql`.
+2. Cipta akaun PIC dalam Supabase Authentication.
+3. Promosikan akaun PIC:
 
 ```sql
 update public.profiles
@@ -83,16 +81,12 @@ set role='pic'
 where id=(select id from auth.users where email='EMAIL_PIC');
 ```
 
-Isi environment variables di Vercel/`.env`:
+4. Isi `.env`:
 
 ```env
-VITE_SUPABASE_URL=https://lqtogsgixciyakijfvkb.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=PASTE_PUBLISHABLE_KEY
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=xxxx
 ```
-
-`VITE_SUPABASE_ANON_KEY` masih diterima sebagai fallback untuk deployment lama, tetapi publishable key moden lebih digalakkan.
-
-Untuk submission guru tanpa login, aplikasi menggunakan `INSERT` sahaja. PIC yang sudah login menggunakan `upsert/update`; ini sepadan dengan RLS production.
 
 ## GitHub / Vercel
 
@@ -109,7 +103,3 @@ Output: `dist/`.
 ## Chrome extension
 
 Extension dibina selepas webapp/database stabil. Ia akan membaca versi instrumen pada rekod. Extension hanya akan autofill jika versi tersebut mempunyai Google Form mapping yang sah dan fingerprint form sepadan.
-
-## Vercel build fix 2.1.1
-- Added Vite client environment type reference (`src/vite-env.d.ts`) so `import.meta.env` compiles under TypeScript.
-- Removed unnecessary `allowImportingTsExtensions` from `tsconfig.node.json` to avoid TS5096 on Vercel.

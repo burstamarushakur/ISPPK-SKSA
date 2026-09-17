@@ -4,6 +4,8 @@ import { getInstrumentVersions } from '../lib/store'
 import type { InstrumentVersion } from '../lib/types'
 import { getDefaultInstrumentFromList } from '../instruments/registry'
 
+const SCHOOL_LOGO_URL = 'https://i.postimg.cc/3RF9M05N/Logo-SKSA.png'
+
 export default function Home() {
   const [versions, setVersions] = useState<InstrumentVersion[]>([])
   useEffect(()=>{ getInstrumentVersions().then(setVersions).catch(()=>{}) },[])
@@ -12,10 +14,10 @@ export default function Home() {
   return <main className="container">
     <section className="hero">
       <div>
-        <span className="hero-badge">INSTRUMEN STANDARD PENILAIAN PEMBUDAYAAN KBAT</span>
-        <h1>Satu kali isi. Data siap untuk semakan, PDF rasmi dan Google Form.</h1>
-        <p>Webapp dalaman SK Sungai Abong untuk pengisian ISPPK PdP Guru & Murid. Sistem dibina secara multi-tahun supaya rekod 2026 kekal utuh dan versi 2027 serta tahun seterusnya boleh ditambah tanpa mengubah data lama.</p>
-        <div className="toolbar" style={{marginTop:22}}>
+        <div className="hero-logo-wrap">
+          <img className="hero-logo" src={SCHOOL_LOGO_URL} alt="Logo Sekolah Kebangsaan Sungai Abong" />
+        </div>
+        <div className="toolbar hero-toolbar" style={{marginTop:22}}>
           <Link className="btn btn-primary" to="/borang">Mula Isi Instrumen</Link>
           <Link className="btn btn-secondary" to="/pic">Dashboard PIC</Link>
         </div>

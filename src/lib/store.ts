@@ -262,12 +262,7 @@ export async function saveObservation(obs: Observation) {
       google_form_status: obs.googleFormStatus,
       updated_at: new Date().toISOString()
     }
-    // Public teacher submissions are INSERT-only by RLS. PIC sessions may update/upsert existing records.
-    const { data: sessionData } = await supabase.auth.getSession()
-    const query = sessionData.session
-      ? supabase.from('observations').upsert(row)
-      : supabase.from('observations').insert(row)
-    const { error } = await query
+    const { error } = await supabase.from('observations').upsert(row)
     if (error) throw error
     return
   }
