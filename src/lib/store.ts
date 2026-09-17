@@ -106,6 +106,9 @@ function mapObservation(row: any): Observation {
     reflection1: row.reflection_1 || '',
     reflection2: row.reflection_2 || '',
     observerSummary: row.observer_summary || '',
+    studentObserverSummary: row.student_observer_summary || '',
+    observerSignatureDataUrl: row.observer_signature_data_url || '',
+    observerSignedAt: row.observer_signed_at || '',
     status: row.status || 'submitted',
     googleFormStatus: row.google_form_status || 'pending',
     createdAt: row.created_at || new Date().toISOString(),
@@ -137,7 +140,10 @@ function normalizeLocalObservation(input: any): Observation {
     subjectTeachingExperienceYears: input.subjectTeachingExperienceYears ?? null,
     specialPosition: input.specialPosition || '',
     studentsMale: input.studentsMale ?? null,
-    studentsFemale: input.studentsFemale ?? null
+    studentsFemale: input.studentsFemale ?? null,
+    studentObserverSummary: input.studentObserverSummary || '',
+    observerSignatureDataUrl: input.observerSignatureDataUrl || '',
+    observerSignedAt: input.observerSignedAt || ''
   }
 }
 
@@ -338,6 +344,9 @@ export async function saveObservation(obs: Observation) {
       reflection_1: obs.reflection1,
       reflection_2: obs.reflection2,
       observer_summary: obs.observerSummary,
+      student_observer_summary: obs.studentObserverSummary,
+      observer_signature_data_url: obs.observerSignatureDataUrl,
+      observer_signed_at: obs.observerSignedAt || null,
       status: obs.status,
       google_form_status: obs.googleFormStatus,
       updated_at: new Date().toISOString()

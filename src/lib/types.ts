@@ -165,6 +165,9 @@ export interface Observation {
   reflection1: string
   reflection2: string
   observerSummary: string
+  studentObserverSummary: string
+  observerSignatureDataUrl: string
+  observerSignedAt: string
   status: RecordStatus
   googleFormStatus: GoogleFormStatus
   createdAt: string

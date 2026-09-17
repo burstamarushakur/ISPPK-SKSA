@@ -4,6 +4,7 @@ import SearchSelect from '../components/SearchSelect'
 import { DatePicker, TimePicker } from '../components/Pickers'
 import RubricCard from '../components/RubricCard'
 import StudentScoreCard from '../components/StudentScoreCard'
+import SignaturePad from '../components/SignaturePad'
 import { picIsLoggedIn } from '../lib/auth'
 import { deleteObservation, getClasses, getEvaluators, getInstrumentVersions, getObservation, getSchoolSettings, getSubjects, getTeachers, saveObservation } from '../lib/store'
 import type { Evaluator, InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from '../lib/types'
@@ -19,7 +20,7 @@ export default function RecordEditor(){
   const [subjects,setSubjects]=useState<Subject[]>([])
   const [school,setSchool]=useState<SchoolSettings|null>(null)
   const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [saved,setSaved]=useState(false)
-  const [section,setSection]=useState<'info'|'teacher'|'student'|'reflection'|'google'>('info')
+  const [section,setSection]=useState<'info'|'teacher'|'student'|'observer'|'google'>('info')
 
   useEffect(()=>{ picIsLoggedIn().then(async ok=>{
     if(!ok){navigate('/pic');return}
@@ -38,7 +39,26 @@ export default function RecordEditor(){
   const schoolClass=classes.find(c=>c.id===obs?.classId)
   const subject=subjects.find(s=>s.id===obs?.subjectId)
 
-  const save=async(verify=false)=>{if(!obs)return;setBusy(true);setError('');setSaved(false);try{const updated={...obs,status:verify?'verified':obs.status,updatedAt:new Date().toISOString()} as Observation;await saveObservation(updated);setObs(updated);setSaved(true);setTimeout(()=>setSaved(false),2000)}catch(e:any){setError(e.message)}finally{setBusy(false)}}
+  const validateObserver=()=>{
+    if(!obs)return 'Rekod belum dimuatkan.'
+    if(!obs.evaluatorId||!obs.observerName.trim()||!obs.observerPosition.trim())return 'Pilih Nama Pemantau dalam Bahagian A.'
+    if(!obs.observationDate)return 'Pilih Tarikh pencerapan.'
+    if(!obs.reflection1.trim()||!obs.reflection2.trim())return 'Lengkapkan kedua-dua soalan Bahagian F – Refleksi.'
+    if(!obs.observerSummary.trim())return 'Lengkapkan Rumusan Keseluruhan Pemantau untuk borang Guru.'
+    if(!obs.studentObserverSummary.trim())return 'Lengkapkan Rumusan Keseluruhan Pemantau untuk borang Murid.'
+    if(!obs.observerSignatureDataUrl)return 'Pemantau perlu tandatangan pada pad tandatangan digital.'
+    return ''
+  }
+
+  const save=async(verify=false)=>{
+    if(!obs)return
+    if(verify){const v=validateObserver();if(v){setError(v);setSection('observer');return}}
+    setBusy(true);setError('');setSaved(false)
+    try{
+      const updated={...obs,status:verify?'verified':obs.status,updatedAt:new Date().toISOString()} as Observation
+      await saveObservation(updated);setObs(updated);setSaved(true);setTimeout(()=>setSaved(false),2000)
+    }catch(e:any){setError(e.message)}finally{setBusy(false)}
+  }
   const setGoogle=async(status:'pending'|'sent')=>{if(!obs)return;const next={...obs,googleFormStatus:status,updatedAt:new Date().toISOString()};setObs(next);await saveObservation(next)}
   const removeRecord=async()=>{if(!obs)return;if(!window.confirm(`Padam rekod ${teacher?.name||obs.teacherNameSnapshot||''}?\n\nTindakan ini tidak boleh dibatalkan.`))return;setBusy(true);setError('');try{await deleteObservation(obs.id);navigate('/pic',{replace:true})}catch(e:any){setError(e.message||'Gagal memadam rekod.');setBusy(false)}}
 
@@ -46,21 +66,16 @@ export default function RecordEditor(){
   if(!obs)return <main className="container"><div className="card">Memuatkan rekod...</div></main>
   if(!instrument)return <main className="container"><div className="notice error">Versi instrumen tidak ditemui.</div></main>
 
-  const tabs:Array<[typeof section,string]>=[['info','Bahagian A-D'],['teacher','Skor Guru'],['student','Skor Murid'],['reflection','Pengiraan / Refleksi'],['google','Google Form']]
+  const tabs:Array<[typeof section,string]>=[['info','Bahagian B-D'],['teacher','Skor Guru'],['student','Skor Murid'],['observer','Mod Pemantau'],['google','Google Form']]
   const mapping=instrument.googleFormMapping
 
   return <main className="container">
-    <div className="section-title"><div><Link to="/pic" className="helper">← Dashboard PIC</Link><h1 style={{marginTop:6}}>{teacher?.name||obs.teacherNameSnapshot||'Rekod ISPPK'}</h1><p><span className="version-chip">{instrument.year}</span> {subject?.name||obs.subjectNameSnapshot} · {schoolClass?`TAHUN ${schoolClass.year} - ${schoolClass.name}`:obs.classNameSnapshot}</p></div><div className="record-actions"><button className="btn btn-delete-record" onClick={removeRecord} disabled={busy}>Padam Rekod</button><button className="btn btn-primary" onClick={()=>save(true)} disabled={busy}>{busy?'Menyimpan...':'Simpan & Sahkan'}</button></div></div>
+    <div className="section-title"><div><Link to="/pic" className="helper">← Dashboard PIC</Link><h1 style={{marginTop:6}}>{teacher?.name||obs.teacherNameSnapshot||'Rekod ISPPK'}</h1><p><span className="version-chip">{instrument.year}</span> {subject?.name||obs.subjectNameSnapshot} · {schoolClass?`TAHUN ${schoolClass.year} - ${schoolClass.name}`:obs.classNameSnapshot}</p></div><div className="record-actions"><button className="btn btn-delete-record" onClick={removeRecord} disabled={busy}>Padam Rekod</button><button className="btn btn-secondary" onClick={()=>save(false)} disabled={busy}>{busy?'Menyimpan...':'Simpan'}</button><button className="btn btn-primary" onClick={()=>save(true)} disabled={busy}>{busy?'Menyimpan...':'Simpan & Sahkan'}</button></div></div>
     {error&&<div className="notice error" style={{marginBottom:14}}>{error}</div>}{saved&&<div className="notice success" style={{marginBottom:14}}>Perubahan disimpan.</div>}
     <div className="summary-bar"><div className="metric"><span>Guru</span><strong>{summary?.teacherTotal||0}/{summary?.teacherMax||50}</strong></div><div className="metric"><span>Guru %</span><strong>{summary?.teacherPercent||0}%</strong></div><div className="metric"><span>Murid</span><strong>{summary?.student||0}/{summary?.studentMax||70}</strong></div><div className="metric"><span>Murid %</span><strong>{summary?.studentPercent||0}%</strong></div></div>
     <div className="toolbar" style={{marginBottom:16}}>{tabs.map(([k,l])=><button key={k} className={`btn ${section===k?'btn-primary':'btn-secondary'}`} onClick={()=>setSection(k)}>{l}</button>)}</div>
 
     {section==='info'&&<div className="card">
-      <div className="official-info-block"><h2>Bahagian A – Maklumat Pemantau</h2><div className="form-grid">
-        <div className="field span-2"><label>1. Nama Pemantau</label><SearchSelect value={obs.evaluatorId||''} onChange={v=>{const e=evaluators.find(x=>x.id===v);setObs({...obs,evaluatorId:v,observerName:e?.name||'',observerPosition:e?.position||''})}} options={evaluators.filter(e=>e.active).sort((a,b)=>a.sortOrder-b.sortOrder).map(e=>({value:e.id,label:e.name}))} placeholder="Cari nama pemantau..."/></div>
-        <div className="field span-2"><label>2. Jawatan</label><input className="input official-readonly" readOnly value={obs.observerPosition}/></div>
-        <div className="field"><label>3. Tarikh</label><DatePicker value={obs.observationDate} onChange={v=>setObs({...obs,observationDate:v})}/></div>
-      </div></div>
       <div className="official-info-block"><h2>Bahagian B – Maklumat Sekolah</h2><div className="form-grid">
         <div className="field"><label>1. Nama Sekolah</label><input className="input official-readonly" readOnly value={school?.schoolName||''}/></div><div className="field"><label>2. Alamat Sekolah</label><input className="input official-readonly" readOnly value={school?.address||''}/></div>
         <div className="field"><label>3. No. Tel.</label><input className="input official-readonly" readOnly value={school?.phone||''}/></div><div className="field"><label>4. No. Faks</label><input className="input official-readonly" readOnly value={school?.fax||''}/></div>
@@ -83,12 +98,21 @@ export default function RecordEditor(){
 
     {section==='teacher'&&<div>{instrument.teacherRubric.map(item=><RubricCard key={item.id} item={item} value={obs.finalTeacherScores[item.id]} onChange={n=>setObs({...obs,finalTeacherScores:{...obs.finalTeacherScores,[item.id]:n}})} scoreLabels={instrument.scoreLabels}/>)}</div>}
     {section==='student'&&<div><div className="student-guide"><strong>PANDUAN SKOR</strong>{instrument.studentScoreGuide.map((g,i)=><div key={i}>{g}</div>)}</div>{instrument.studentRubric.map((item,i)=><StudentScoreCard key={item.id} item={item} index={i} value={obs.finalStudentScores[item.id]} onChange={n=>setObs({...obs,finalStudentScores:{...obs.finalStudentScores,[item.id]:n}})} scoreGuide={instrument.studentScoreGuide}/>)}</div>}
-    {section==='reflection'&&<div className="grid">
-      <div className="card"><h2>Guru – Pengiraan Skor dan Pencapaian</h2><p><strong>{summary?.teacherTotal||0}/{summary?.teacherMax||50} · {summary?.teacherPercent||0}%</strong></p><div className="notice">{achievementLabel(summary?.teacherPercent||0,instrument)}</div></div>
-      <div className="card"><h2>Murid – Pengiraan Skor dan Pencapaian</h2><p><strong>{summary?.student||0}/{summary?.studentMax||70} · {summary?.studentPercent||0}%</strong></p><div className="notice">{studentAchievementLabel(summary?.studentPercent||0,instrument)}</div></div>
-      <div className="card"><h2>Guru – Bahagian F – Refleksi</h2><div className="field"><label>1. Apa pandangan anda mengenai pengajaran dan pembelajaran (PdP) KBAT yang telah anda laksanakan tadi?</label><textarea rows={7} value={obs.reflection1} onChange={e=>setObs({...obs,reflection1:e.target.value})}/></div><div className="field" style={{marginTop:14}}><label>2. Bagaimana anda boleh membuat penambahbaikan terhadap PdP KBAT anda? (Nyatakan perancangan anda.)</label><textarea rows={7} value={obs.reflection2} onChange={e=>setObs({...obs,reflection2:e.target.value})}/></div></div>
-      <div className="card"><h2>Bahagian G – Rumusan</h2><div className="field"><label>Rumusan Keseluruhan Pemantau:</label><textarea rows={5} value={obs.observerSummary} onChange={e=>setObs({...obs,observerSummary:e.target.value})}/></div><p className="helper">Tandatangan Pemantau: pada salinan cetak · Tarikh: {formatDateMY(obs.observationDate)}</p></div>
+
+    {section==='observer'&&<div className="grid">
+      <div className="notice"><strong>Mod Pemantau – PC PIC.</strong> Pemantau isi bahagian ini terus pada komputer PIC. Tiada link khas dan tiada akaun pemantau berasingan.</div>
+      <div className="card"><div className="official-section-title">Bahagian A – Maklumat Pemantau</div><div className="form-grid">
+        <div className="field span-2"><label>1. Nama Pemantau *</label><SearchSelect value={obs.evaluatorId||''} onChange={v=>{const e=evaluators.find(x=>x.id===v);setObs({...obs,evaluatorId:v,observerName:e?.name||'',observerPosition:e?.position||''})}} options={evaluators.filter(e=>e.active).sort((a,b)=>a.sortOrder-b.sortOrder).map(e=>({value:e.id,label:e.name}))} placeholder="Cari nama pemantau..."/></div>
+        <div className="field span-2"><label>2. Jawatan</label><input className="input official-readonly" readOnly value={obs.observerPosition}/></div><div className="field"><label>3. Tarikh *</label><DatePicker value={obs.observationDate} onChange={v=>setObs({...obs,observationDate:v})}/></div>
+      </div></div>
+      <div className="card"><div className="official-section-title">Guru – Bahagian E – Pengiraan Skor dan Pencapaian</div><p><strong>{summary?.teacherTotal||0}/{summary?.teacherMax||50} · {summary?.teacherPercent||0}%</strong></p><div className="notice">{achievementLabel(summary?.teacherPercent||0,instrument)}</div></div>
+      <div className="card"><div className="official-section-title">Murid – Pengiraan Skor dan Pencapaian</div><p><strong>{summary?.student||0}/{summary?.studentMax||70} · {summary?.studentPercent||0}%</strong></p><div className="notice">{studentAchievementLabel(summary?.studentPercent||0,instrument)}</div></div>
+      <div className="card"><div className="official-section-title">Guru – Bahagian F – Refleksi</div><p className="helper">Diisi oleh pemantau semasa menemu bual guru sekolah.</p><div className="field"><label>1. Apa pandangan anda mengenai pengajaran dan pembelajaran (PdP) KBAT yang telah anda laksanakan tadi? *</label><textarea rows={7} value={obs.reflection1} onChange={e=>setObs({...obs,reflection1:e.target.value})}/></div><div className="field" style={{marginTop:14}}><label>2. Bagaimana anda boleh membuat penambahbaikan terhadap PdP KBAT anda? (Nyatakan perancangan anda.) *</label><textarea rows={7} value={obs.reflection2} onChange={e=>setObs({...obs,reflection2:e.target.value})}/></div></div>
+      <div className="card"><div className="official-section-title">Guru – Bahagian G – Rumusan</div><div className="field"><label>Rumusan Keseluruhan Pemantau *</label><textarea rows={6} value={obs.observerSummary} onChange={e=>setObs({...obs,observerSummary:e.target.value})}/></div></div>
+      <div className="card"><div className="official-section-title">Murid – Bahagian G – Rumusan</div><div className="field"><label>Rumusan Keseluruhan Pemantau *</label><textarea rows={6} value={obs.studentObserverSummary} onChange={e=>setObs({...obs,studentObserverSummary:e.target.value})}/></div></div>
+      <div className="card"><div className="official-section-title">Tandatangan Pemantau</div><SignaturePad value={obs.observerSignatureDataUrl} onChange={data=>setObs({...obs,observerSignatureDataUrl:data,observerSignedAt:data?new Date().toISOString():''})}/><div className="form-grid" style={{marginTop:14}}><div className="field"><label>Nama Pemantau</label><input className="input official-readonly" readOnly value={obs.observerName}/></div><div className="field"><label>Tarikh</label><input className="input official-readonly" readOnly value={formatDateMY(obs.observationDate)}/></div></div></div>
     </div>}
+
     {section==='google'&&<div className="grid grid-2"><div className="card"><h2>Data Untuk Chrome Extension</h2>{mapping?<table style={{minWidth:0}}><tbody><tr><td>Guru</td><td><strong>{teacher?.name||obs.teacherNameSnapshot}</strong></td></tr><tr><td>Subjek</td><td>{subject?.name||obs.subjectNameSnapshot}</td></tr><tr><td>Kehadiran</td><td>{attendanceBucket(obs.studentsPresent)}</td></tr><tr><td>Tahap</td><td>{schoolClass?levelBucket(schoolClass.year):''}</td></tr>{instrument.domains.map(d=><tr key={d.id}><td>Skor {d.label}</td><td>{summary?.domains[d.id]||0}</td></tr>)}<tr><td>Skor Murid</td><td>{summary?.student||0}</td></tr></tbody></table>:<div className="notice">Google Form belum dipetakan.</div>}</div><div className="card"><h2>Status Google Form</h2><p><strong>{obs.googleFormStatus==='sent'?'✅ SUDAH DIHANTAR':'⏳ BELUM DIHANTAR'}</strong></p><div className="toolbar"><button className="btn btn-secondary" onClick={()=>setGoogle('pending')}>Tanda Belum</button><button className="btn btn-primary" onClick={()=>setGoogle('sent')} disabled={!mapping}>Tanda Sudah</button></div></div></div>}
   </main>
 }

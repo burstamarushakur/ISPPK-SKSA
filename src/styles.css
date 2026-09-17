@@ -143,3 +143,9 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
 }
 .achievement-active td { background:#f0e9f8; font-weight:700; }
 .student-item-ref { display:inline-flex; margin-left:10px; padding:3px 7px; border-radius:999px; background:#f0eaf6; color:#5c3b8d; font-size:11px; font-weight:800; }
+
+.signature-pad-wrap { border:1px solid #d9d0e3; border-radius:14px; background:#fff; overflow:hidden; }
+.signature-pad { width:100%; height:190px; display:block; background:#fff; touch-action:none; cursor:crosshair; }
+.signature-pad.disabled { cursor:not-allowed; opacity:.6; }
+.signature-pad-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-top:1px solid #eee8f1; background:#faf8fc; }
+@media (max-width: 640px) { .signature-pad-footer { align-items:stretch; flex-direction:column; } }
