@@ -109,3 +109,7 @@ Output: `dist/`.
 ## Chrome extension
 
 Extension dibina selepas webapp/database stabil. Ia akan membaca versi instrumen pada rekod. Extension hanya akan autofill jika versi tersebut mempunyai Google Form mapping yang sah dan fingerprint form sepadan.
+
+## Vercel build fix 2.1.1
+- Added Vite client environment type reference (`src/vite-env.d.ts`) so `import.meta.env` compiles under TypeScript.
+- Removed unnecessary `allowImportingTsExtensions` from `tsconfig.node.json` to avoid TS5096 on Vercel.
