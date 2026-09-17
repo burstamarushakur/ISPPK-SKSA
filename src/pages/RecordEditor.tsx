@@ -66,7 +66,7 @@ export default function RecordEditor(){
   if(!obs)return <main className="container"><div className="card">Memuatkan rekod...</div></main>
   if(!instrument)return <main className="container"><div className="notice error">Versi instrumen tidak ditemui.</div></main>
 
-  const tabs:Array<[typeof section,string]>=[['info','Bahagian B-D'],['teacher','Skor Guru'],['student','Skor Murid'],['observer','Mod Pemantau'],['google','Google Form']]
+  const tabs:Array<[typeof section,string]>=[['info','Bahagian A-D'],['teacher','Skor Guru'],['student','Skor Murid'],['observer','Mod Pemantau'],['google','Google Form']]
   const mapping=instrument.googleFormMapping
 
   return <main className="container">
@@ -76,6 +76,11 @@ export default function RecordEditor(){
     <div className="toolbar" style={{marginBottom:16}}>{tabs.map(([k,l])=><button key={k} className={`btn ${section===k?'btn-primary':'btn-secondary'}`} onClick={()=>setSection(k)}>{l}</button>)}</div>
 
     {section==='info'&&<div className="card">
+      <div className="official-info-block"><h2>Bahagian A – Maklumat Pemantau</h2><div className="form-grid">
+        <div className="field span-2"><label>1. Nama Pemantau</label><SearchSelect value={obs.evaluatorId||''} onChange={v=>{const e=evaluators.find(x=>x.id===v);setObs({...obs,evaluatorId:v,observerName:e?.name||'',observerPosition:e?.position||''})}} options={evaluators.filter(e=>e.active).sort((a,b)=>a.sortOrder-b.sortOrder).map(e=>({value:e.id,label:e.name}))} placeholder="Cari nama pemantau..."/></div>
+        <div className="field span-2"><label>2. Jawatan</label><input className="input official-readonly" readOnly value={obs.observerPosition}/></div>
+        <div className="field"><label>3. Tarikh</label><DatePicker value={obs.observationDate} onChange={v=>setObs({...obs,observationDate:v})}/></div>
+      </div></div>
       <div className="official-info-block"><h2>Bahagian B – Maklumat Sekolah</h2><div className="form-grid">
         <div className="field"><label>1. Nama Sekolah</label><input className="input official-readonly" readOnly value={school?.schoolName||''}/></div><div className="field"><label>2. Alamat Sekolah</label><input className="input official-readonly" readOnly value={school?.address||''}/></div>
         <div className="field"><label>3. No. Tel.</label><input className="input official-readonly" readOnly value={school?.phone||''}/></div><div className="field"><label>4. No. Faks</label><input className="input official-readonly" readOnly value={school?.fax||''}/></div>
@@ -100,11 +105,7 @@ export default function RecordEditor(){
     {section==='student'&&<div><div className="student-guide"><strong>PANDUAN SKOR</strong>{instrument.studentScoreGuide.map((g,i)=><div key={i}>{g}</div>)}</div>{instrument.studentRubric.map((item,i)=><StudentScoreCard key={item.id} item={item} index={i} value={obs.finalStudentScores[item.id]} onChange={n=>setObs({...obs,finalStudentScores:{...obs.finalStudentScores,[item.id]:n}})} scoreGuide={instrument.studentScoreGuide}/>)}</div>}
 
     {section==='observer'&&<div className="grid">
-      <div className="notice"><strong>Mod Pemantau – PC PIC.</strong> Pemantau isi bahagian ini terus pada komputer PIC. Tiada link khas dan tiada akaun pemantau berasingan.</div>
-      <div className="card"><div className="official-section-title">Bahagian A – Maklumat Pemantau</div><div className="form-grid">
-        <div className="field span-2"><label>1. Nama Pemantau *</label><SearchSelect value={obs.evaluatorId||''} onChange={v=>{const e=evaluators.find(x=>x.id===v);setObs({...obs,evaluatorId:v,observerName:e?.name||'',observerPosition:e?.position||''})}} options={evaluators.filter(e=>e.active).sort((a,b)=>a.sortOrder-b.sortOrder).map(e=>({value:e.id,label:e.name}))} placeholder="Cari nama pemantau..."/></div>
-        <div className="field span-2"><label>2. Jawatan</label><input className="input official-readonly" readOnly value={obs.observerPosition}/></div><div className="field"><label>3. Tarikh *</label><DatePicker value={obs.observationDate} onChange={v=>setObs({...obs,observationDate:v})}/></div>
-      </div></div>
+      <div className="notice"><strong>Mod Pemantau – PC PIC.</strong> Bahagian A telah ditetapkan semasa pengisian awal. Pemantau di PC PIC hanya melengkapkan Bahagian F, Rumusan Guru, Rumusan Murid dan tandatangan digital.</div>
       <div className="card"><div className="official-section-title">Guru – Bahagian E – Pengiraan Skor dan Pencapaian</div><p><strong>{summary?.teacherTotal||0}/{summary?.teacherMax||50} · {summary?.teacherPercent||0}%</strong></p><div className="notice">{achievementLabel(summary?.teacherPercent||0,instrument)}</div></div>
       <div className="card"><div className="official-section-title">Murid – Pengiraan Skor dan Pencapaian</div><p><strong>{summary?.student||0}/{summary?.studentMax||70} · {summary?.studentPercent||0}%</strong></p><div className="notice">{studentAchievementLabel(summary?.studentPercent||0,instrument)}</div></div>
       <div className="card"><div className="official-section-title">Guru – Bahagian F – Refleksi</div><p className="helper">Diisi oleh pemantau semasa menemu bual guru sekolah.</p><div className="field"><label>1. Apa pandangan anda mengenai pengajaran dan pembelajaran (PdP) KBAT yang telah anda laksanakan tadi? *</label><textarea rows={7} value={obs.reflection1} onChange={e=>setObs({...obs,reflection1:e.target.value})}/></div><div className="field" style={{marginTop:14}}><label>2. Bagaimana anda boleh membuat penambahbaikan terhadap PdP KBAT anda? (Nyatakan perancangan anda.) *</label><textarea rows={7} value={obs.reflection2} onChange={e=>setObs({...obs,reflection2:e.target.value})}/></div></div>

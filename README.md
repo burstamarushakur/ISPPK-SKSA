@@ -130,7 +130,7 @@ Extension dibina selepas webapp/database stabil. Ia akan membaca versi instrumen
 - Pemantau dipilih daripada master Pegawai Penilai PBPPP dan tidak dikunci mengikut PYD.
 - PIC boleh urus master Pemantau serta memadam rekod.
 
-## v2.3.1 — flow pemantau pada PC PIC
+## v2.3.2 — flow pemantau pada PC PIC
 - Bahagian B ditanam terus untuk SK Sungai Abong (alamat, telefon, faks, e-mel, gred, jenis dan lokasi sekolah).
 - Guru tidak lagi memilih pemantau atau mengisi Bahagian F/G sebelum menghantar rekod.
 - PIC membuka rekod dan menggunakan tab **Mod Pemantau** untuk Bahagian A, Refleksi Guru, Rumusan Guru, Rumusan Murid dan tandatangan digital.
