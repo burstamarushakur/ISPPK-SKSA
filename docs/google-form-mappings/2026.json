@@ -1,0 +1,26 @@
+{
+  "formId": "1FAIpQLSf5spNOHshC3fg_gPcWnU_qvZ6JxHXmu7Ini5c8dTPeQgYucw",
+  "title": "Pengumpulan Skor ISPPK KBAT (Guru dan Murid) Tahun 2026",
+  "fixed": {
+    "state": { "entry": "entry.239349717", "value": "JOHOR" },
+    "ppd": { "entry": "entry.934737966", "value": "MUAR" },
+    "school": { "entry": "entry.35170183", "value": "JBA5095 SEKOLAH KEBANGSAAN SUNGAI ABONG" }
+  },
+  "fields": {
+    "observationDate": "entry.1318149698",
+    "teacherName": "entry.974514806",
+    "gender": "entry.2059299346",
+    "optionName": "entry.250639074",
+    "subject": "entry.1067028718",
+    "attendanceBucket": "entry.239647449",
+    "levelBucket": "entry.928460574",
+    "className": "entry.691390932",
+    "topic": "entry.1076597618",
+    "pdpTime": "entry.137993890",
+    "planningScore": "entry.276564800",
+    "implementationScore": "entry.431081358",
+    "reflectionScore": "entry.877415289",
+    "studentScore": "entry.1234919513"
+  },
+  "note": "Extracted from the provided Google Forms view-source snapshot. Use with structure fingerprint checks in the extension."
+}
