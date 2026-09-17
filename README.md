@@ -16,3 +16,8 @@ Webapp SK Sungai Abong untuk ISPPK PdP Guru & Murid.
 - Bahagian I: Rumusan + tandatangan pencerap
 
 Data yang guru hantar dikunci daripada suntingan PIC. PIC hanya melengkapkan Bahagian H/I, tandatangan, status dan penghantaran Google Form.
+
+## Patch v2.4.2
+- PDF Bahagian C: jantina dibulatkan pada perkataan Lelaki/Perempuan, bukan tanda X.
+- PDF Bahagian E dan F: skor dipaparkan sebagai highlight sel kuning lembut dengan bingkai, meniru PDF muat turun sistem rasmi; tiada tanda X atas teks rubrik.
+- Tandatangan pencerap dibersihkan kepada PNG alpha-transparent semasa jana PDF, termasuk tandatangan lama yang pernah mempunyai latar putih.
