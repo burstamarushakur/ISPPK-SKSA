@@ -74,7 +74,7 @@ export async function generateOfficialPdf(
   drawAtTop(2, obs.topic.toUpperCase(), 208, 684, 8.0, false, 305)
   drawAtTop(2, formatTime(obs.pdpTime), 208, 711, 8.2, true)
 
-  const teacherScores = Object.keys(obs.finalTeacherScores || {}).length ? obs.finalTeacherScores : obs.selfTeacherScores
+  const teacherScores = obs.selfTeacherScores
   const scoreX = [0, 316.9, 416.6, 516.4, 616.1, 715.9]
   const teacherCoords: Record<string, [number, number]> = {
     '1.1': [3, 282], '1.2': [3, 454], '1.3': [4, 264], '1.4': [4, 474],
@@ -87,7 +87,7 @@ export async function generateOfficialPdf(
     drawAtTop(pageIndex, 'X', scoreX[score] - 5, yTop, 18, true)
   }
 
-  const studentScores = Object.keys(obs.finalStudentScores || {}).length ? obs.finalStudentScores : obs.selfStudentScores
+  const studentScores = obs.selfStudentScores
   const studentX = [0, 417.7, 440.2, 462.7, 485.2, 507.7]
   const studentY = [0, 326, 364, 402, 439, 477, 515, 555, 592, 631, 684]
   instrument.studentRubric.slice(0, 10).forEach((item, index) => {
@@ -122,8 +122,18 @@ export async function generateOfficialPdf(
   drawParagraph(obs.reflection2, 75, 358, 92, 5)
   coverTopRect(69, 529, 456, 62)
   drawParagraph(obs.observerSummary, 75, 535, 92, 3)
+  if (obs.observerSignatureDataUrl?.startsWith('data:image/png;base64,')) {
+    try {
+      const bytes = Uint8Array.from(atob(obs.observerSignatureDataUrl.split(',')[1]), c => c.charCodeAt(0))
+      const sig = await pdf.embedPng(bytes)
+      const dims = sig.scaleToFit(150, 58)
+      p14.drawRectangle({ x: 145, y: p14.getHeight() - 675, width: 165, height: 62, color: white })
+      p14.drawImage(sig, { x: 150, y: p14.getHeight() - 668, width: dims.width, height: dims.height })
+    } catch {}
+  }
   p14.drawRectangle({ x: 150, y: p14.getHeight() - 704, width: 150, height: 28, color: white })
-  drawAtTop(13, formatDateMY(obs.observationDate), 160, 683, 9.2, true)
+  const signedDate = obs.observerSignedAt ? obs.observerSignedAt.slice(0,10) : obs.observationDate
+  drawAtTop(13, formatDateMY(signedDate), 160, 683, 9.2, true)
 
   const bytes = await pdf.save()
   return new Blob([bytes as BlobPart], { type: 'application/pdf' })
