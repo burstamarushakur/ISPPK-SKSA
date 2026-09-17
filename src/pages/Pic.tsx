@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { picIsLoggedIn, picLogin, picLogout } from '../lib/auth'
-import { getClasses, getInstrumentVersions, getObservations, getSchoolSettings, getSubjects, getTeachers, saveClass, saveInstrumentVersion, saveSchoolSettings, saveSubject, saveTeacher } from '../lib/store'
+import { deleteObservation, getClasses, getInstrumentVersions, getObservations, getSchoolSettings, getSubjects, getTeachers, saveClass, saveInstrumentVersion, saveSchoolSettings, saveSubject, saveTeacher } from '../lib/store'
 import type { InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from '../lib/types'
 import { cloneInstrumentForYear } from '../instruments/registry'
 import { formatDateMY, scoreSummary, uid, upper } from '../lib/utils'
@@ -31,6 +31,16 @@ export default function Pic() {
 
   const login = async (e: React.FormEvent) => { e.preventDefault(); setError(''); try { await picLogin(email,password); setAuthed(true); await load() } catch(e:any) { setError(e.message) } }
   const logout = async () => { await picLogout(); setAuthed(false) }
+
+  const removeRecord = async (o: Observation) => {
+    const teacherName = teachers.find(x=>x.id===o.teacherId)?.name || o.teacherNameSnapshot || 'rekod ini'
+    if (!window.confirm(`Padam rekod ${teacherName}?\n\nTindakan ini tidak boleh dibatalkan.`)) return
+    setError('')
+    try {
+      await deleteObservation(o.id)
+      setObs(current => current.filter(x => x.id !== o.id))
+    } catch (e:any) { setError(e.message || 'Gagal memadam rekod.') }
+  }
 
   const filtered = useMemo(() => obs.filter(o => {
     const t = teachers.find(x=>x.id===o.teacherId)?.name || o.teacherNameSnapshot || ''
@@ -65,7 +75,7 @@ export default function Pic() {
       <div className="summary-bar"><div className="metric"><span>Semua Rekod</span><strong>{obs.length}</strong></div><div className="metric"><span>Menunggu Semakan</span><strong>{counts.submitted}</strong></div><div className="metric"><span>Disahkan</span><strong>{counts.verified}</strong></div><div className="metric"><span>Belum Google Form</span><strong>{counts.pending}</strong></div><div className="metric"><span>Versi Aktif</span><strong>{instruments.filter(x=>x.active).length}</strong></div></div>
       <div className="card" style={{marginBottom:14}}><div className="form-grid"><div className="field"><label>Cari rekod</label><input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nama guru, mata pelajaran atau topik..."/></div><div className="field"><label>Tahun Instrumen</label><select className="select" value={yearFilter} onChange={e=>setYearFilter(e.target.value)}><option value="all">Semua tahun</option>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></div></div></div>
       <div className="table-wrap"><table><thead><tr><th>Tahun</th><th>Guru</th><th>Tarikh</th><th>Subjek / Kelas</th><th>Skor</th><th>Status</th><th>Google Form</th><th></th></tr></thead><tbody>
-        {filtered.map(o=>{const t=teachers.find(x=>x.id===o.teacherId);const c=classes.find(x=>x.id===o.classId);const s=subjects.find(x=>x.id===o.subjectId);const iv=instruments.find(x=>x.id===o.instrumentVersionId);const sc=iv?scoreSummary(o,iv):null;return <tr key={o.id}><td><span className="version-chip">{o.instrumentYearSnapshot}</span></td><td><strong>{t?.name||o.teacherNameSnapshot||'Guru'}</strong><div className="helper">{o.topic}</div></td><td>{formatDateMY(o.observationDate)}</td><td>{s?.name||o.subjectNameSnapshot}<div className="helper">{c?`TAHUN ${c.year} - ${c.name}`:o.classNameSnapshot}</div></td><td><strong>{sc?`${sc.total}/${sc.maxTotal}`:'—'}</strong></td><td><span className={`status status-${o.status}`}>{o.status==='verified'?'DISAHKAN':o.status==='submitted'?'MENUNGGU':'DRAF'}</span></td><td>{o.googleFormStatus==='sent'?'✅ SUDAH':'⏳ BELUM'}</td><td><button className="btn btn-secondary" onClick={()=>navigate(`/pic/rekod/${o.id}`)}>Buka</button></td></tr>})}
+        {filtered.map(o=>{const t=teachers.find(x=>x.id===o.teacherId);const c=classes.find(x=>x.id===o.classId);const s=subjects.find(x=>x.id===o.subjectId);const iv=instruments.find(x=>x.id===o.instrumentVersionId);const sc=iv?scoreSummary(o,iv):null;return <tr key={o.id}><td><span className="version-chip">{o.instrumentYearSnapshot}</span></td><td><strong>{t?.name||o.teacherNameSnapshot||'Guru'}</strong><div className="helper">{o.topic}</div></td><td>{formatDateMY(o.observationDate)}</td><td>{s?.name||o.subjectNameSnapshot}<div className="helper">{c?`TAHUN ${c.year} - ${c.name}`:o.classNameSnapshot}</div></td><td><strong>{sc?`${sc.total}/${sc.maxTotal}`:'—'}</strong></td><td><span className={`status status-${o.status}`}>{o.status==='verified'?'DISAHKAN':o.status==='submitted'?'MENUNGGU':'DRAF'}</span></td><td>{o.googleFormStatus==='sent'?'✅ SUDAH':'⏳ BELUM'}</td><td><div className="toolbar"><button className="btn btn-secondary" onClick={()=>navigate(`/pic/rekod/${o.id}`)}>Buka</button><button className="btn btn-delete-record" onClick={()=>removeRecord(o)}>Padam</button></div></td></tr>})}
         {filtered.length===0 && <tr><td colSpan={8}><div className="empty">Belum ada rekod.</div></td></tr>}
       </tbody></table></div>
     </>}

@@ -30,9 +30,26 @@ function mapSubject(row: any): Subject { return { id: row.id, name: row.name, ac
 function mapInstrument(row: any): InstrumentVersion {
   const base = DEFAULT_INSTRUMENTS.find(x => x.id === row.id) || {}
   const config = row.config || {}
+  const merged: any = { ...base, ...config }
+  // 2026 is an official locked source version. Its rubric wording and score guide
+  // always come from the bundled source-of-truth config so stale DB copies cannot
+  // silently replace the official PDF wording.
+  if ((base as any).code === 'ISPPK-PDP-2026-V1') {
+    merged.title = (base as any).title
+    merged.shortTitle = (base as any).shortTitle
+    merged.description = (base as any).description
+    merged.teacherRubric = (base as any).teacherRubric
+    merged.studentRubric = (base as any).studentRubric
+    merged.scoreLabels = (base as any).scoreLabels
+    merged.studentScoreGuide = (base as any).studentScoreGuide
+    merged.domains = (base as any).domains
+    merged.studentMaxScore = (base as any).studentMaxScore
+    merged.totalMaxScore = (base as any).totalMaxScore
+    merged.achievementBands = (base as any).achievementBands
+    merged.sourceNote = (base as any).sourceNote
+  }
   return {
-    ...base,
-    ...config,
+    ...merged,
     id: row.id,
     year: row.year,
     code: row.code,
@@ -274,4 +291,16 @@ export async function saveObservation(obs: Observation) {
   const list = await getObservations(); const idx = list.findIndex(x => x.id === obs.id)
   if (idx >= 0) list[idx] = obs; else list.unshift(obs)
   save(KEYS.observations, list)
+}
+
+export async function deleteObservation(id: string) {
+  if (isSupabaseConfigured && supabase) {
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData.session) throw new Error('Hanya PIC yang log masuk boleh memadam rekod.')
+    const { error } = await supabase.from('observations').delete().eq('id', id)
+    if (error) throw error
+    return
+  }
+  const list = await getObservations()
+  save(KEYS.observations, list.filter(x => x.id !== id))
 }

@@ -1,81 +1,180 @@
 import type { InstrumentVersion, RubricItem, StudentItem } from '../lib/types'
 
-const fourPoint = (thing: string) => [
-  `Guru melaksanakan ${thing} TANPA mana-mana perkara yang dinyatakan.`,
-  `Guru melaksanakan ${thing} bagi mana-mana satu (1) perkara.`,
-  `Guru melaksanakan ${thing} bagi mana-mana dua (2) perkara.`,
-  `Guru melaksanakan ${thing} bagi mana-mana tiga (3) perkara.`,
-  `Guru melaksanakan ${thing} bagi semua empat (4) perkara.`
-]
-
-const fivePoint = (thing: string) => [
-  `Guru melaksanakan ${thing} bagi mana-mana satu (1) perkara.`,
-  `Guru melaksanakan ${thing} bagi mana-mana dua (2) perkara.`,
-  `Guru melaksanakan ${thing} bagi mana-mana tiga (3) perkara.`,
-  `Guru melaksanakan ${thing} bagi mana-mana empat (4) perkara.`,
-  `Guru melaksanakan ${thing} bagi semua lima (5) perkara.`
-]
-
+// Source of truth: V2 Borang Instrumen ISPPK 2026 (Guru & Murid).
+// Wording below intentionally follows the official PDF, including its original phrasing.
 const teacherRubric: RubricItem[] = [
   {
     id: '1.1', domain: 'planning', skas: '4.1',
-    title: 'Menetapkan objektif PdP bercirikan KBAT',
-    criteria: ['Eksplisit dan jelas.', 'Mengikut pelbagai tahap keupayaan/penguasaan murid.', 'Mengikut peruntukan masa yang ditetapkan.', 'Mematuhi ketetapan kurikulum.'],
-    scoreDescriptions: fourPoint('perancangan objektif PdP bercirikan KBAT')
+    title: 'Menetapkan objektif PdP bercirikan KBAT seperti berikut:',
+    criteria: [
+      'Eksplisit dan jelas.',
+      'Mengikut pelbagai tahap keupayaan/penguasaan murid.',
+      'Mengikut peruntukan masa yang ditetapkan.',
+      'Mematuhi ketetapan kurikulum.'
+    ],
+    scoreDescriptions: [
+      'Guru merancang objektif PdP TANPA mana-mana perkara i,ii,iii dan iv.',
+      'Guru merancang objektif PdP bercirikan KBAT bagi mana-mana satu (1) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang objektif PdP bercirikan KBAT bagi mana-mana dua (2) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang objektif PdP bercirikan KBAT bagi mana-mana tiga (3) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang objektif PdP bercirikan KBAT bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '1.2', domain: 'planning', skas: '4.1',
-    title: 'Merancang set induksi yang menggalakkan KBAT dalam PdP',
-    criteria: ['Mengikut pelbagai aras keupayaan murid.', 'Mengambil kira pengetahuan sedia ada.', 'Berupaya menarik minat murid.', 'Mengikut peruntukan masa yang ditetapkan.'],
-    scoreDescriptions: fourPoint('set induksi yang sesuai dan menggalakkan KBAT dalam PdP')
+    title: 'Merancang set induksi yang menggalakkan KBAT dalam PdP.',
+    criteria: [
+      'Mengikut pelbagai aras keupayaan murid.',
+      'Pengetahuan sedia ada.',
+      'Berupaya menarik minat murid.',
+      'Mengikut peruntukan masa yang ditetapkan.'
+    ],
+    scoreDescriptions: [
+      'Guru merancang set induksi TANPA mana-mana perkara i, ii,iii dan iv.',
+      'Guru merancang set induksi yang sesuai dan menggalakkan KBAT dalam PdP bagi mana mana satu (1) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang set induksi yang sesuai dan menggalakkan KBAT dalam PdP bagi mana mana dua (2) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang set induksi yang sesuai dan menggalakkan KBAT dalam PdP bagi mana-mana tiga (3) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang set induksi yang sesuai dan menggalakkan KBAT dalam PdP bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '1.3', domain: 'planning', skas: '4.1',
-    title: 'Merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan objektif PdP',
-    criteria: ['Mengikut pelbagai aras keupayaan murid.', 'Mengikut peruntukan masa yang ditetapkan.', 'Mematuhi ketetapan kurikulum.', 'Menerapkan penggunaan alat berfikir.'],
-    scoreDescriptions: fourPoint('aktiviti pembelajaran berpusatkan murid berdasarkan objektif PdP')
+    title: 'Merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan kepada objektif PdP.',
+    criteria: [
+      'Mengikut pelbagai aras keupayaan murid.',
+      'Mengikut peruntukan masa yang ditetapkan.',
+      'Mematuhi ketetapan kurikulum.',
+      'Menerapkan penggunaan alat berfikir.'
+    ],
+    scoreDescriptions: [
+      'Guru merancang aktiviti pembelajaran TANPA mana-mana perkara i,ii,iii dan iv.',
+      'Guru merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan objektif PdP bagi bagi mana-mana satu (1) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan objektif PdP bagi bagi mana-mana dua (2) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan objektif PdP bagi mana-mana tiga (3) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang aktiviti pembelajaran yang berpusatkan murid berdasarkan objektif PdP bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '1.4', domain: 'planning', skas: '4.1',
-    title: 'Merancang pentaksiran yang bercirikan KBAT',
-    criteria: ['Eksplisit dan jelas.', 'Mengikut pelbagai tahap keupayaan/penguasaan murid.', 'Mengikut peruntukan masa yang ditetapkan.', 'Mematuhi ketetapan kurikulum.'],
-    scoreDescriptions: fourPoint('pentaksiran yang bercirikan KBAT')
+    title: 'Merancang pentaksiran yang bercirikan KBAT.',
+    criteria: [
+      'Eksplisit dan jelas.',
+      'Mengikut pelbagai tahap keupayaan/penguasaan murid.',
+      'Mengikut peruntukan masa yang ditetapkan.',
+      'Mematuhi ketetapan kurikulum.'
+    ],
+    scoreDescriptions: [
+      'Guru merancang Pentaksiran yang bercirikan KBAT TANPA mana-mana perkara i,ii,iii dan iv.',
+      'Guru merancang pentaksiran yang bercirikan KBAT bagi mana mana satu (1) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang pentaksiran yang bercirikan KBAT bagi mana mana dua (2) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang pentaksiran yang bercirikan KBAT bagi mana mana tiga (3) daripada perkara i,ii,iii dan iv.',
+      'Guru merancang pentaksiran yang bercirikan KBAT bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '2.1', domain: 'implementation', skas: '4.2 / 4.3 / 4.4',
-    title: 'Menyediakan persekitaran PdP yang kondusif',
-    criteria: ['Mewujudkan suasana pembelajaran yang menyeronokkan.', 'Menyusun atur kedudukan murid.', 'Mengawasi perlakuan murid.', 'Mengawasi komunikasi murid.'],
-    scoreDescriptions: fourPoint('persekitaran PdP yang kondusif')
+    title: 'Menyediakan persekitaran PdP yang kondusif.',
+    criteria: [
+      'Mewujudkan suasana pembelajaran yang menyeronokkan.',
+      'Menyusun atur kedudukan murid.',
+      'Mengawasi perlakuan murid.',
+      'Mengawasi komunikasi murid.'
+    ],
+    scoreDescriptions: [
+      'Guru menyediakan persekitaran PdP yang kondusif TANPA mana mana perkara i,ii,iii dan iv.',
+      'Guru menyediakan persekitaran PdP yang kondusif Bagi mana mana satu (1) daripada perkara i,ii.iii dan iv.',
+      'Guru menyediakan persekitaran PdP yang kondusif bagi mana-mana dua (2) perkara i,ii.iii dan iv.',
+      'Guru menyediakan persekitaran PdP yang kondusif bagi mana-mana tiga (3) perkara i,ii.iii dan iv.',
+      'Guru menyediakan persekitaran PdP yang kondusif bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '2.2', domain: 'implementation', skas: '4.2 / 4.3 / 4.4',
-    title: 'Melibatkan murid secara aktif dalam PdP / PdP berpusatkan murid',
-    criteria: ['Memberi tunjuk ajar/tunjuk cara/panduan menguasai isi pelajaran/konsep/fakta berkaitan pelajaran.', 'Memberi tunjuk ajar/tunjuk cara/panduan menguasai kemahiran dalam aktiviti pembelajaran.', 'Mendorong murid membuat keputusan dan menyelesaikan masalah dalam aktiviti pembelajaran.', 'Mendorong murid menggunakan/memanfaatkan sumber pendidikan berkaitan pelajaran.', 'Menggabung/merentas/mengaitkan isi pelajaran dengan tajuk/unit/tema/nilai/kemahiran/mata pelajaran lain dalam aktiviti pembelajaran.'],
-    scoreDescriptions: fivePoint('penglibatan murid secara aktif dalam PdP berpusatkan murid')
+    title: 'Melibatkan murid secara aktif dalam PdP/ PdP berpusatkan murid.',
+    criteria: [
+      'Memberi tunjuk ajar/tunjuk cara/panduan menguasai isi pelajaran/konsep/fakta berkaitan pelajaran.',
+      'Memberi tunjuk ajar/tunjuk cara/panduan menguasai kemahiran dalam aktiviti pembelajaran.',
+      'Mendorong murid membuat keputusan dan menyelesaikan masalah dalam aktiviti pembelajaran.',
+      'Mendorong murid menggunakan/memanfaatkan sumber pendidikan berkaitan pelajaran.',
+      'Menggabung/merentas/mengaitkan isi pelajaran dengan tajuk/unit/tema/nilai/kemahiran/ mata pelajaran lain dalam aktiviti pembelajaran.'
+    ],
+    scoreDescriptions: [
+      'Guru melibatkan murid secara aktif dalam PdP berpusatkan murid bagi mana-mana satu (1) daripada perkara i,ii,iii, iv dan v.',
+      'Guru melibatkan murid secara aktif dalam PdP berpusatkan murid bagi mana-mana dua (2) daripada perkara i,ii,iii, iv dan v.',
+      'Guru melibatkan murid secara aktif dalam PdP berpusatkan murid bagi mana-mana tiga (3) daripada perkara i,ii,iii, iv dan v.',
+      'Guru melibatkan murid secara aktif dalam PdP berpusatkan murid bagi mana-mana empat (4) daripada perkara i,ii,iii, iv dan v.',
+      'Guru melibatkan murid secara aktif dalam PdP berpusatkan murid bagi semua lima (5) perkara berkenaan.'
+    ]
   },
   {
     id: '2.3', domain: 'implementation', skas: '4.2 / 4.3 / 4.4',
-    title: 'Menggunakan teknik penyoalan yang menggalakkan murid berfikir',
-    criteria: ['Merangsang murid berkomunikasi.', 'Merangsang murid berkolaboratif dalam aktiviti pembelajaran.', 'Mengemukakan soalan yang merangsang pemikiran kritis dan kreatif ke arah membuat keputusan dan menyelesaikan masalah.', 'Menggalakkan murid mengemukakan soalan berkaitan isi pelajaran.', 'Menggalakkan murid memperoleh pengetahuan dan kemahiran secara kendiri.'],
-    scoreDescriptions: fivePoint('teknik penyoalan yang menggalakkan murid berfikir')
+    title: 'Menggunakan teknik penyoalan yang menggalakkan murid berfikir.',
+    criteria: [
+      'Merangsang murid berkomunikasi.',
+      'Merangsang murid berkolaboratif dalam aktiviti pembelajaran.',
+      'Mengemukakan soalan yang merangsang pemikiran kritis dan kreatif yang menjurus ke arah membuat keputusan dan menyelesaikan masalah.',
+      'Menggalakkan murid mengemukakan soalan berkaitan isi pelajaran.',
+      'Menggalakkan murid memperoleh pengetahuan dan kemahiran secara kendiri.'
+    ],
+    scoreDescriptions: [
+      'Guru menggunakan teknik penyoalan yang menggalakkan murid berfikir bagi bagi mana-mana satu (1) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan teknik penyoalan yang menggalakkan murid berfikir bagi bagi mana-mana dua (2) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan teknik penyoalan yang menggalakkan murid berfikir bagi bagi mana-mana tiga (3) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan teknik penyoalan yang menggalakkan murid berfikir bagi bagi mana-mana empat (4) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan teknik penyoalan yang menggalakkan murid berfikir bagi semua lima (5) perkara berkenaan.'
+    ]
   },
   {
     id: '2.4', domain: 'implementation', skas: '4.2 / 4.3 / 4.4',
-    title: 'Menggunakan alat berfikir semasa PdP',
-    criteria: ['Merangsang murid berkomunikasi.', 'Merangsang murid berkolaboratif dalam aktiviti pembelajaran.', 'Mengemukakan soalan yang menjurus ke arah pemikiran kritis dan kreatif, membuat keputusan dan menyelesaikan masalah.', 'Menggalakkan murid mengemukakan soalan berkaitan isi pelajaran.', 'Menggalakkan murid memperoleh pengetahuan dan kemahiran secara kendiri.'],
-    scoreDescriptions: fivePoint('penggunaan alat berfikir semasa PdP')
+    title: 'Menggunakan alat berfikir semasa PdP.',
+    criteria: [
+      'Merangsang murid berkomunikasi.',
+      'Merangsang murid berkolaboratif dalam aktiviti pembelajaran.',
+      'Mengemukakan soalan yang menjurus ke arah pemikiran kritis dan kreatif yang menjurus ke arah membuat keputusan dan menyelesaikan masalah.',
+      'Menggalakkan murid mengemukakan soalan berkaitan isi pelajaran.',
+      'Menggalakkan murid memperoleh pengetahuan dan kemahiran secara kendiri.'
+    ],
+    scoreDescriptions: [
+      'Guru menggunakan alat berfikir semasa PdP bagi mana-mana satu (1) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan alat berfikir semasa PdP bagi bagi mana-mana dua (2) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan alat berfikir semasa PdP bagi bagi mana-mana tiga (3) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan alat berfikir semasa PdP bagi bagi mana-mana empat (4) daripada perkara i,ii,iii,iv dan v',
+      'Guru menggunakan alat berfikir semasa PdP bagi semua perkara berkenaan.'
+    ]
   },
   {
     id: '2.5', domain: 'implementation', skas: '4.5',
-    title: 'Melaksanakan pentaksiran bercirikan KBAT',
-    criteria: ['Menggunakan pelbagai kaedah pentaksiran.', 'Menjalankan aktiviti pemulihan/pengayaan.', 'Memberi latihan/tugasan berkaitan pelajaran.', 'Menyemak/menilai hasil kerja/gerak kerja/latihan/tugasan.'],
-    scoreDescriptions: fourPoint('pentaksiran bercirikan KBAT')
+    title: 'Melaksanakan pentaksiran bercirikan KBAT.',
+    criteria: [
+      'Menggunakan pelbagai kaedah pentaksiran.',
+      'Menjalankan aktiviti pemulihan/pengayaan.',
+      'Memberi latihan/tugasan berkaitan pelajaran.',
+      'Menyemak/menilai hasil kerja/gerak kerja/ latihan/tugasan.'
+    ],
+    scoreDescriptions: [
+      'Guru melaksanakan pentaksiran bercirikan KBAT TANPA mana-mana perkara daripada i,ii,iii dan iv.',
+      'Guru melaksanakan pentaksiran bercirikan KBAT bagi mana mana satu (1) daripada perkara i,ii,iii & iv.',
+      'Guru melaksanakan pentaksiran bercirikan KBAT bagi mana-mana dua (2) daripada perkara i,ii,iii & iv.',
+      'Guru melaksanakan pentaksiran bercirikan KBAT bagi mana-mana tiga (3) daripada perkara i,ii,iii dan iv.',
+      'Guru melaksanakan pentaksiran bercirikan KBAT bagi semua empat (4) perkara berkenaan.'
+    ]
   },
   {
     id: '3.1', domain: 'reflection', skas: '4.5',
-    title: 'Melaksanakan refleksi PdP',
-    criteria: ['Guru mempraktikkan amalan refleksi dalam PdP.', 'Berdasarkan objektif pembelajaran.', 'Guru menilai kelemahan dan kekuatan PdP dengan jelas.', 'Guru mengenal pasti tindakan susulan untuk penambahbaikan dan pemantapan PdP.'],
-    scoreDescriptions: fourPoint('refleksi PdP')
+    title: 'Melaksanakan refleksi PdP.',
+    criteria: [
+      'Guru mempraktikkan amalan refleksi dalam PdP.',
+      'Berdasarkan objektif pembelajaran.',
+      'Guru menilai kelemahan dan kekuatan PdP dengan jelas.',
+      'Guru mengenal pasti tindakan susulan untuk penambahbaikan dan pemantapan PdP.'
+    ],
+    scoreDescriptions: [
+      'Guru melaksanakan refleksi PdP TANPA mana-mana perkara daripada i,ii,iii dan iv.',
+      'Guru melaksanakan refleksi PdP bagi mana-mana satu (1) perkara daripada i,ii,iii dan iv.',
+      'Guru melaksanakan refleksi PdP bagi mana-mana dua (2) perkara daripada i,ii,iii dan iv.',
+      'Guru melaksanakan refleksi PdP bagi mana-mana tiga (3) perkara daripada i,ii,iii dan iv.',
+      'Guru melaksanakan refleksi PdP bagi semua empat (4) perkara berkenaan.'
+    ]
   }
 ]
 
@@ -98,13 +197,19 @@ export const ISPPK_2026: InstrumentVersion = {
   code: 'ISPPK-PDP-2026-V1',
   title: 'Instrumen Standard Penilaian Pembudayaan Kemahiran Berfikir Aras Tinggi (KBAT) dalam Pengajaran dan Pembelajaran (Guru & Murid) Tahun 2026',
   shortTitle: 'ISPPK PdP Guru & Murid 2026',
-  description: 'Versi rasmi 2026 yang menjadi versi pertama dalam sistem multi-tahun SK Sungai Abong.',
+  description: 'Versi rasmi 2026 berdasarkan borang instrumen yang dibekalkan.',
   active: true,
   isDefault: true,
   teacherRubric,
   studentRubric,
   scoreLabels: ['KESEDARAN', 'ASAS', 'PERTENGAHAN', 'LANJUTAN', 'PAKAR'],
-  studentScoreGuide: ['1% - 20%', '21% - 40%', '41% - 60%', '61% - 80%', '81% - 100%'],
+  studentScoreGuide: [
+    'Skor 1: 1% - 20% bilangan murid mencapai item di bawah',
+    'Skor 2: 21%- 40% bilangan murid mencapai item di bawah',
+    'Skor 3: 41% – 60% bilangan murid mencapai item di bawah',
+    'Skor 4: 61% - 80% bilangan murid mencapai item di bawah',
+    'Skor 5: 81% - 100% bilangan murid mencapai item di bawah'
+  ],
   domains: [
     { id: 'planning', label: 'Perancangan', itemIds: ['1.1','1.2','1.3','1.4'], maxScore: 20 },
     { id: 'implementation', label: 'Pelaksanaan', itemIds: ['2.1','2.2','2.3','2.4','2.5'], maxScore: 25 },

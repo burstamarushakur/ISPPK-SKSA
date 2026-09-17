@@ -113,3 +113,32 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
   .hero-logo { max-height:220px; }
   .hero-toolbar { justify-content:center; }
 }
+
+/* Official 2026 rubric layout: all five rubric columns stay visible, matching the PDF content. */
+.official-rubric-card { overflow: visible; }
+.official-criteria { list-style:none; padding-left:0; display:grid; gap:5px; }
+.criterion { display:grid; grid-template-columns:28px 1fr; gap:5px; }
+.official-score-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); border-top:1px solid #e9e3ee; }
+.official-score-option { appearance:none; border:0; border-right:1px solid #e4dce9; background:#fff; padding:12px; text-align:left; min-height:170px; cursor:pointer; }
+.official-score-option:last-child { border-right:0; }
+.official-score-option:hover { background:#faf7fd; }
+.official-score-option.selected { background:#f0e9f8; box-shadow:inset 0 0 0 3px #5c3b8d; }
+.official-score-number { font-size:22px; font-weight:900; color:#4c346c; }
+.official-score-label { font-size:11px; font-weight:900; color:#5b4a6b; margin:3px 0 10px; letter-spacing:.2px; }
+.official-score-description { font-size:12px; line-height:1.5; color:#4f4756; }
+.official-section-title { background:#ded3eb; border:1px solid #b9a9ca; padding:8px 10px; font-weight:900; margin:0 0 14px; }
+.official-info-block { margin-bottom:18px; }
+.official-info-block h2 { font-size:16px; background:#ded3eb; border:1px solid #b9a9ca; padding:8px 10px; margin:0 0 14px; }
+.official-readonly { background:#f8f6fa; }
+.student-guide { background:#fff; border:1px solid #e1d9e8; border-radius:14px; padding:16px; margin-bottom:16px; }
+.student-guide strong { display:block; margin-bottom:8px; }
+.student-guide div { font-size:13px; line-height:1.55; }
+.record-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.btn-delete-record { background:#ffe5e5; color:#a51f1f; border:1px solid #efbcbc; }
+.btn-delete-record:hover { background:#ffd6d6; }
+@media (max-width: 980px) {
+  .official-score-grid { grid-template-columns:1fr; }
+  .official-score-option { border-right:0; border-bottom:1px solid #e4dce9; min-height:auto; }
+  .official-score-option:last-child { border-bottom:0; }
+}
+.achievement-active td { background:#f0e9f8; font-weight:700; }

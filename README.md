@@ -113,3 +113,12 @@ Extension dibina selepas webapp/database stabil. Ia akan membaca versi instrumen
 ## Vercel build fix 2.1.1
 - Added Vite client environment type reference (`src/vite-env.d.ts`) so `import.meta.env` compiles under TypeScript.
 - Removed unnecessary `allowImportingTsExtensions` from `tsconfig.node.json` to avoid TS5096 on Vercel.
+
+## v2.2.0 - Official 2026 instrument parity + PIC delete
+- Bahagian A-I disusun mengikut borang rasmi 2026.
+- Rubrik Guru memaparkan kesemua 5 penerangan skor dengan wording daripada PDF rasmi.
+- Rubrik Murid dan Panduan Skor menggunakan wording rasmi.
+- Bahagian G memaparkan pengiraan dan rujukan tahap pencapaian rasmi.
+- Bahagian H/I menggunakan soalan/refleksi/rumusan rasmi.
+- PDF kekal menggunakan template rasmi 14 muka surat.
+- Padam rekod tersedia hanya dalam dashboard/rekod PIC dan masih dilindungi RLS Supabase.
