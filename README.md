@@ -1,3 +1,13 @@
+# ISPPK SKSA v2.5.2 — Universal Date/Time Picker Fix
+
+Fix picker desktop + iPhone/iPad/Android.
+
+- Guna native `<input type="date">` dan `<input type="time">` yang **visible** pada semua device.
+- Desktop Chromium: klik mana-mana bahagian input akan cuba `showPicker()`; jika browser tak sokong, native control masih berfungsi.
+- iPhone/iPad/Android: guna native picker OS terus.
+- Tiada lagi transparent overlay yang menyebabkan picker desktop gagal selepas fix mobile v2.5.1.
+- Tiada perubahan kepada Supabase, RPH, PDF, score, submission flow atau Chrome extension.
+
 # ISPPK SKSA v2.4.0
 
 Webapp SK Sungai Abong untuk ISPPK PdP Guru & Murid.

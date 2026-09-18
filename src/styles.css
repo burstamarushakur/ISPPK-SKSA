@@ -49,38 +49,42 @@ a { color: inherit; text-decoration: none; }
 .helper { color:#776d7e; font-size:12px; }
 .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
 .form-grid .span-2 { grid-column:span 2; }
-.picker { position:relative; min-height:44px; }
-.picker-button { width:100%; min-height:44px; border:1px solid #d9d0e3; background:#fff; border-radius:11px; padding:11px 12px; text-align:left; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
-.picker-native { position:absolute; inset:0; z-index:2; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; border:0; background:transparent; -webkit-tap-highlight-color:transparent; }
-.picker:focus-within .picker-button { border-color:#7552a6; box-shadow:0 0 0 3px rgba(117,82,166,.11); }
-/* Mobile/touch fallback: expose the real native control.
-   This avoids iOS Safari's lack of reliable showPicker() support. */
+.picker { width:100%; min-height:44px; }
+.picker-native {
+  display:block;
+  width:100%;
+  min-height:44px;
+  height:44px;
+  margin:0;
+  border:1px solid #d9d0e3;
+  border-radius:11px;
+  background:#fff;
+  color:#2b2630;
+  padding:9px 12px;
+  font:inherit;
+  line-height:1.2;
+  cursor:pointer;
+  outline:none;
+  box-sizing:border-box;
+  -webkit-text-fill-color:#2b2630;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  color-scheme:light;
+}
+.picker-native:focus {
+  border-color:#7552a6;
+  box-shadow:0 0 0 3px rgba(117,82,166,.11);
+}
+.picker-native:disabled {
+  background:#f8f6fa;
+  color:#3d3743;
+  -webkit-text-fill-color:#3d3743;
+  opacity:1;
+  cursor:not-allowed;
+}
 @media (pointer: coarse), (max-width: 820px) {
   .picker { min-height:48px; }
-  .picker .picker-button { display:none; }
-  .picker .picker-native {
-    position:static;
-    inset:auto;
-    display:block;
-    width:100%;
-    height:48px;
-    opacity:1;
-    border:1px solid #d9d0e3;
-    border-radius:11px;
-    background:#fff;
-    color:#2b2630;
-    padding:10px 12px;
-    font:inherit;
-    -webkit-text-fill-color:#2b2630;
-    -webkit-appearance:auto;
-    appearance:auto;
-    touch-action:manipulation;
-  }
-  .picker .picker-native:focus {
-    outline:none;
-    border-color:#7552a6;
-    box-shadow:0 0 0 3px rgba(117,82,166,.11);
-  }
+  .picker-native { min-height:48px; height:48px; font-size:16px; }
 }
 
 .search-select { position:relative; }
@@ -186,7 +190,6 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
 .pic-readonly-zone:disabled .input,
 .pic-readonly-zone:disabled .select,
 .pic-readonly-zone:disabled textarea,
-.pic-readonly-zone:disabled .picker-button { color:#3d3743; -webkit-text-fill-color:#3d3743; background:#f8f6fa; opacity:1; cursor:not-allowed; }
 .pic-readonly-zone:disabled .official-score-option,
 .pic-readonly-zone:disabled .score-option { opacity:1; cursor:not-allowed; }
 
