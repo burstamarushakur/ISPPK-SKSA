@@ -22,7 +22,7 @@ Data yang guru hantar dikunci daripada suntingan PIC. PIC hanya melengkapkan Bah
 - PDF Bahagian E dan F: skor dipaparkan sebagai highlight sel kuning lembut dengan bingkai, meniru PDF muat turun sistem rasmi; tiada tanda X atas teks rubrik.
 - Tandatangan pencerap dibersihkan kepada PNG alpha-transparent semasa jana PDF, termasuk tandatangan lama yang pernah mempunyai latar putih.
 
-## v2.5.0 — Lampiran RPH
+## v2.5.1 — Lampiran RPH
 
 - Guru boleh melampirkan RPH secara pilihan pada langkah akhir sebelum Hantar kepada PIC.
 - Format: PDF, DOC, DOCX, JPG, PNG; maksimum 10 MB.
@@ -30,3 +30,9 @@ Data yang guru hantar dikunci daripada suntingan PIC. PIC hanya melengkapkan Bah
 - Selepas rekod dihantar, metadata dan fail RPH dikunci sebagai sebahagian data asal guru.
 - PIC hanya boleh melihat / memuat turun RPH dan RPH dipadam bersama rekod jika PIC memadam rekod.
 - Chrome extension / Google Form tidak diubah.
+
+
+## v2.5.1
+- Date picker dan time picker dibaiki untuk iPhone/iPad/Android.
+- Peranti sentuh menggunakan input date/time native browser secara terus.
+- Desktop kekal dengan paparan picker sedia ada.
