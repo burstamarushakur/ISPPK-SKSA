@@ -158,3 +158,15 @@ hr { border:0; border-top:1px solid #eee8f1; margin:20px 0; }
 .pic-readonly-zone:disabled .picker-button { color:#3d3743; -webkit-text-fill-color:#3d3743; background:#f8f6fa; opacity:1; cursor:not-allowed; }
 .pic-readonly-zone:disabled .official-score-option,
 .pic-readonly-zone:disabled .score-option { opacity:1; cursor:not-allowed; }
+
+/* Optional RPH attachment */
+.rph-upload-card { overflow:visible; }
+.optional-chip { display:inline-flex; margin-left:8px; padding:3px 7px; border-radius:999px; background:#f3eef8; color:#65458e; font-size:10px; font-weight:900; vertical-align:middle; }
+.rph-dropzone { position:relative; margin-top:12px; }
+.rph-dropzone input[type=file] { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.rph-dropzone label { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:120px; padding:18px; border:2px dashed #cdbfda; border-radius:14px; background:#fbf9fd; cursor:pointer; text-align:center; }
+.rph-dropzone label:hover { border-color:#7751a5; background:#f7f2fb; }
+.rph-dropzone label strong { color:#50376f; font-size:15px; }
+.rph-dropzone label span { color:#776d7e; font-size:12px; }
+.rph-selected,.rph-pic-row { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; padding:12px 14px; border:1px solid #ddd3e5; border-radius:12px; background:#fff; }
+@media (max-width:640px){ .rph-selected,.rph-pic-row { align-items:stretch; flex-direction:column; } }

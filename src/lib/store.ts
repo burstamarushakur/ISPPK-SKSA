@@ -109,6 +109,10 @@ function mapObservation(row: any): Observation {
     studentObserverSummary: row.student_observer_summary || '',
     observerSignatureDataUrl: row.observer_signature_data_url || '',
     observerSignedAt: row.observer_signed_at || '',
+    rphPath: row.rph_path || '',
+    rphFileName: row.rph_file_name || '',
+    rphMimeType: row.rph_mime_type || '',
+    rphSizeBytes: row.rph_size_bytes ?? null,
     status: row.status || 'submitted',
     googleFormStatus: row.google_form_status || 'pending',
     createdAt: row.created_at || new Date().toISOString(),
@@ -143,7 +147,11 @@ function normalizeLocalObservation(input: any): Observation {
     studentsFemale: input.studentsFemale ?? null,
     studentObserverSummary: input.studentObserverSummary || '',
     observerSignatureDataUrl: input.observerSignatureDataUrl || '',
-    observerSignedAt: input.observerSignedAt || ''
+    observerSignedAt: input.observerSignedAt || '',
+    rphPath: input.rphPath || '',
+    rphFileName: input.rphFileName || '',
+    rphMimeType: input.rphMimeType || '',
+    rphSizeBytes: input.rphSizeBytes ?? null
   }
 }
 
@@ -347,6 +355,10 @@ export async function saveObservation(obs: Observation) {
       student_observer_summary: obs.studentObserverSummary,
       observer_signature_data_url: obs.observerSignatureDataUrl,
       observer_signed_at: obs.observerSignedAt || null,
+      rph_path: obs.rphPath || '',
+      rph_file_name: obs.rphFileName || '',
+      rph_mime_type: obs.rphMimeType || '',
+      rph_size_bytes: obs.rphSizeBytes,
       status: obs.status,
       google_form_status: obs.googleFormStatus,
       updated_at: new Date().toISOString()
@@ -365,12 +377,63 @@ export async function saveObservation(obs: Observation) {
   save(KEYS.observations, list)
 }
 
+export const RPH_MAX_BYTES = 10 * 1024 * 1024
+export const RPH_ALLOWED_EXTENSIONS = ['pdf','doc','docx','jpg','jpeg','png'] as const
+const RPH_MIME_BY_EXT: Record<string,string> = {
+  pdf:'application/pdf',
+  doc:'application/msword',
+  docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  jpg:'image/jpeg',
+  jpeg:'image/jpeg',
+  png:'image/png'
+}
+
+export function validateRphFile(file: File): string {
+  const ext = file.name.split('.').pop()?.toLowerCase() || ''
+  if (!RPH_ALLOWED_EXTENSIONS.includes(ext as any)) return 'Format RPH mesti PDF, DOC, DOCX, JPG atau PNG.'
+  if (file.size < 1) return 'Fail RPH kosong.'
+  if (file.size > RPH_MAX_BYTES) return 'Saiz RPH maksimum ialah 10 MB.'
+  return ''
+}
+
+export async function uploadRphFile(observationId: string, file: File): Promise<{path:string,fileName:string,mimeType:string,sizeBytes:number}> {
+  const invalid = validateRphFile(file)
+  if (invalid) throw new Error(invalid)
+  if (!isSupabaseConfigured || !supabase) throw new Error('Upload RPH memerlukan sambungan Supabase.')
+  const ext = (file.name.split('.').pop() || 'pdf').toLowerCase()
+  const mimeType = RPH_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
+  const path = `observations/${observationId}/rph.${ext}`
+  const { error } = await supabase.storage.from('rph-uploads').upload(path, file, {
+    contentType: mimeType,
+    upsert: false,
+    cacheControl: '3600'
+  })
+  if (error && !/already exists|duplicate/i.test(error.message||'')) throw error
+  return { path, fileName:file.name, mimeType, sizeBytes:file.size }
+}
+
+export async function getRphSignedUrl(path: string): Promise<string> {
+  if (!path) throw new Error('Rekod ini tiada lampiran RPH.')
+  if (!isSupabaseConfigured || !supabase) throw new Error('RPH hanya tersedia apabila Supabase disambungkan.')
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session) throw new Error('Hanya PIC yang log masuk boleh membuka RPH.')
+  const { data, error } = await supabase.storage.from('rph-uploads').createSignedUrl(path, 60 * 10)
+  if (error) throw error
+  return data.signedUrl
+}
+
 export async function deleteObservation(id: string) {
   if (isSupabaseConfigured && supabase) {
     const { data: sessionData } = await supabase.auth.getSession()
     if (!sessionData.session) throw new Error('Hanya PIC yang log masuk boleh memadam rekod.')
+    const { data: existing, error: readError } = await supabase.from('observations').select('rph_path').eq('id', id).maybeSingle()
+    if (readError) throw readError
     const { error } = await supabase.from('observations').delete().eq('id', id)
     if (error) throw error
+    if (existing?.rph_path) {
+      const { error: storageError } = await supabase.storage.from('rph-uploads').remove([existing.rph_path])
+      if (storageError) console.warn('Rekod dipadam tetapi fail RPH tidak dapat dibersihkan:', storageError.message)
+    }
     return
   }
   const list = await getObservations()

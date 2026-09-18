@@ -4,7 +4,7 @@ import SearchSelect from '../components/SearchSelect'
 import { DatePicker, TimePicker } from '../components/Pickers'
 import RubricCard from '../components/RubricCard'
 import StudentScoreCard from '../components/StudentScoreCard'
-import { getClasses, getEvaluators, getInstrumentVersions, getSchoolSettings, getSubjects, getTeachers, saveObservation } from '../lib/store'
+import { getClasses, getEvaluators, getInstrumentVersions, getSchoolSettings, getSubjects, getTeachers, saveObservation, uploadRphFile, validateRphFile } from '../lib/store'
 import type { Evaluator, Gender, InstrumentVersion, Observation, SchoolClass, SchoolSettings, ScoreMap, Subject, Teacher } from '../lib/types'
 import { getDefaultInstrumentFromList } from '../instruments/registry'
 import { achievementLabel, scoreSummary, uid, upper } from '../lib/utils'
@@ -22,8 +22,11 @@ export default function TeacherForm() {
   const [subjects,setSubjects]=useState<Subject[]>([])
   const [school,setSchool]=useState<SchoolSettings|null>(null)
   const [step,setStep]=useState(0)
+  const [draftId]=useState(()=>uid())
   const [submittedId,setSubmittedId]=useState('')
   const [busy,setBusy]=useState(false)
+  const [busyLabel,setBusyLabel]=useState('')
+  const [rphFile,setRphFile]=useState<File|null>(null)
   const [error,setError]=useState('')
 
   // Bahagian A – Maklumat Pencerap
@@ -76,6 +79,7 @@ export default function TeacherForm() {
     studentsPresent,studentsTotal,studentsMale:null,studentsFemale:null,pdpTime,
     selfTeacherScores:teacherScores,selfStudentScores:studentScores,finalTeacherScores:{},finalStudentScores:{},
     reflection1:'',reflection2:'',observerSummary:'',studentObserverSummary:'',observerSignatureDataUrl:'',observerSignedAt:'',
+    rphPath:'',rphFileName:'',rphMimeType:'',rphSizeBytes:null,
     status:'submitted',googleFormStatus:'pending',createdAt:'',updatedAt:''
   }):null,[instrument,evaluatorId,observerName,observerPosition,observationDate,observationTime,teacherId,teacher,gender,optionName,subjectId,subject,classId,schoolClass,topic,studentsPresent,studentsTotal,pdpTime,teacherScores,studentScores])
 
@@ -95,10 +99,12 @@ export default function TeacherForm() {
   const submit=async()=>{
     if(!instrument||!teacher||!evaluator||!schoolClass||!subject){setError('Maklumat instrumen/pencerap/guru/kelas/subjek belum lengkap.');return}
     if(!canNext()){setError('Sila lengkapkan semua skor sebelum menghantar.');return}
-    setBusy(true);setError('')
+    setBusy(true);setBusyLabel(rphFile?'Memuat naik RPH...':'Menyimpan rekod...');setError('')
     try{
+      let rph={path:'',fileName:'',mimeType:'',sizeBytes:null as number|null}
+      if(rphFile){const uploaded=await uploadRphFile(draftId,rphFile);rph={...uploaded};setBusyLabel('Menyimpan rekod...')}
       const now=new Date().toISOString();const obs:Observation={
-        id:uid(),instrumentVersionId:instrument.id,instrumentYearSnapshot:instrument.year,instrumentTitleSnapshot:instrument.shortTitle,
+        id:draftId,instrumentVersionId:instrument.id,instrumentYearSnapshot:instrument.year,instrumentTitleSnapshot:instrument.shortTitle,
         evaluatorId:evaluator.id,observerName:upper(evaluator.name),observerPosition:upper(evaluator.position),observationDate,observationTime,
         teacherId,teacherNameSnapshot:teacher.name,gender,
         teacherPhone:'',teacherEmail:'',academicQualification:'',professionalQualification:'',optionName:upper(optionName.trim()),teachingExperienceYears:null,
@@ -106,13 +112,23 @@ export default function TeacherForm() {
         classId,classNameSnapshot:schoolClass.name,classYearSnapshot:schoolClass.year,topic:upper(topic.trim()),studentsPresent,studentsTotal,studentsMale:null,studentsFemale:null,pdpTime,
         selfTeacherScores:teacherScores,selfStudentScores:studentScores,finalTeacherScores:{},finalStudentScores:{},
         reflection1:'',reflection2:'',observerSummary:'',studentObserverSummary:'',observerSignatureDataUrl:'',observerSignedAt:'',
+        rphPath:rph.path,rphFileName:rph.fileName,rphMimeType:rph.mimeType,rphSizeBytes:rph.sizeBytes,
         status:'submitted',googleFormStatus:'pending',createdAt:now,updatedAt:now
       }
       await saveObservation(obs);setSubmittedId(obs.id)
-    }catch(e:any){setError(e.message||'Gagal menyimpan rekod.')}finally{setBusy(false)}
+    }catch(e:any){setError(e.message||'Gagal menyimpan rekod.')}finally{setBusy(false);setBusyLabel('')}
   }
 
-  if(submittedId)return <main className="container"><div className="card" style={{maxWidth:720,margin:'50px auto',textAlign:'center'}}><div style={{fontSize:58}}>✅</div><h1>Pengisian berjaya dihantar</h1><p>Rekod telah dihantar kepada PIC. Pencerap akan melengkapkan Bahagian H – Refleksi, Bahagian I – Rumusan dan tandatangan pada PC PIC.</p><p>ID rekod: <strong>{submittedId.slice(0,8).toUpperCase()}</strong></p><div className="toolbar" style={{justifyContent:'center',marginTop:20}}><Link to="/" className="btn btn-secondary">Kembali Utama</Link><button className="btn btn-primary" onClick={()=>location.reload()}>Isi Rekod Baharu</button></div></div></main>
+  const onRphChange=(file:File|null)=>{
+    setError('')
+    if(!file){setRphFile(null);return}
+    const invalid=validateRphFile(file)
+    if(invalid){setError(invalid);setRphFile(null);return}
+    setRphFile(file)
+  }
+  const formatBytes=(n:number)=>n>=1024*1024?`${(n/1024/1024).toFixed(1)} MB`:`${Math.max(1,Math.round(n/1024))} KB`
+
+  if(submittedId)return <main className="container"><div className="card" style={{maxWidth:720,margin:'50px auto',textAlign:'center'}}><div style={{fontSize:58}}>✅</div><h1>Pengisian berjaya dihantar</h1><p>Rekod telah dihantar kepada PIC. Pencerap akan melengkapkan Bahagian H – Refleksi, Bahagian I – Rumusan dan tandatangan pada PC PIC.</p>{rphFile&&<p>📎 RPH turut dihantar kepada PIC.</p>}<p>ID rekod: <strong>{submittedId.slice(0,8).toUpperCase()}</strong></p><div className="toolbar" style={{justifyContent:'center',marginTop:20}}><Link to="/" className="btn btn-secondary">Kembali Utama</Link><button className="btn btn-primary" onClick={()=>location.reload()}>Isi Rekod Baharu</button></div></div></main>
 
   return <main className="container">
     <div className="section-title"><div><h1>Pengisian ISPPK</h1><p>{instrument?`${instrument.shortTitle} · SK Sungai Abong`:'Memuatkan versi instrumen...'}</p></div></div>
@@ -158,9 +174,10 @@ export default function TeacherForm() {
 
     {step===3&&instrument&&<div className="grid">
       <div className="card"><div className="official-section-title">Bahagian G – Pengiraan Skor dan Pencapaian</div><div className="table-wrap"><table style={{minWidth:0}}><thead><tr><th>Komponen</th><th>Domain</th><th>Skor Diperoleh</th><th>Skor Maksimum</th></tr></thead><tbody>{instrument.domains.map((d,i)=><tr key={d.id}><td>Guru</td><td>{i+1}. {d.label}</td><td>{sums?.domains[d.id]||0}</td><td>{d.maxScore}</td></tr>)}<tr><td>Murid</td><td>Murid Sebagai Pembelajar Aktif</td><td>{sums?.student||0}</td><td>50</td></tr><tr><td colSpan={2}><strong>Jumlah Skor Keseluruhan</strong></td><td><strong>{sums?.total||0}</strong></td><td><strong>100</strong></td></tr><tr><td colSpan={2}><strong>Peratus Pencapaian</strong></td><td colSpan={2}><strong>{sums?.percent||0}%</strong></td></tr></tbody></table></div><div className="notice" style={{marginTop:12}}>{achievementLabel(sums?.percent||0,instrument)}</div></div>
+      <div className="card rph-upload-card"><div className="official-section-title">Lampiran RPH <span className="optional-chip">Pilihan</span></div><p className="helper">Jika mahu, lampirkan RPH untuk rekod pencerapan ini. Selepas dihantar kepada PIC, lampiran dikunci dan PIC hanya boleh melihat atau memuat turun.</p><div className="rph-dropzone"><input id="rph-file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e=>{const file=e.target.files?.[0]||null;onRphChange(file);if(file&&validateRphFile(file))e.currentTarget.value=''}}/><label htmlFor="rph-file"><strong>📎 Pilih fail RPH</strong><span>PDF, DOC, DOCX, JPG atau PNG · maksimum 10 MB</span></label></div>{rphFile&&<div className="rph-selected"><div><strong>{rphFile.name}</strong><div className="helper">{formatBytes(rphFile.size)} · Akan dihantar bersama rekod</div></div><button type="button" className="btn btn-secondary" onClick={()=>setRphFile(null)} disabled={busy}>Buang</button></div>}</div>
       <div className="card"><div className="official-section-title">Bahagian Selepas Hantar</div><p>Selepas dihantar, PIC membuka rekod pada PC PIC dan pencerap melengkapkan <strong>Bahagian H – Refleksi, Bahagian I – Rumusan serta tandatangan digital</strong>.</p></div>
     </div>}
 
-    <div className="sticky-actions"><button className="btn btn-secondary" disabled={step===0||busy} onClick={()=>{setStep(s=>Math.max(0,s-1));window.scrollTo({top:0,behavior:'smooth'})}}>← Kembali</button>{step<3?<button className="btn btn-primary" onClick={next} disabled={busy}>Seterusnya →</button>:<button className="btn btn-primary" onClick={submit} disabled={busy}>{busy?'Menyimpan...':'Hantar Kepada PIC'}</button>}</div>
+    <div className="sticky-actions"><button className="btn btn-secondary" disabled={step===0||busy} onClick={()=>{setStep(s=>Math.max(0,s-1));window.scrollTo({top:0,behavior:'smooth'})}}>← Kembali</button>{step<3?<button className="btn btn-primary" onClick={next} disabled={busy}>Seterusnya →</button>:<button className="btn btn-primary" onClick={submit} disabled={busy}>{busy?(busyLabel||'Menyimpan...'):'Hantar Kepada PIC'}</button>}</div>
   </main>
 }

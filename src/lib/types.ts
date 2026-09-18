@@ -168,6 +168,12 @@ export interface Observation {
   studentObserverSummary: string
   observerSignatureDataUrl: string
   observerSignedAt: string
+
+  rphPath: string
+  rphFileName: string
+  rphMimeType: string
+  rphSizeBytes: number | null
+
   status: RecordStatus
   googleFormStatus: GoogleFormStatus
   createdAt: string

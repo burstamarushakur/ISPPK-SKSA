@@ -4,7 +4,7 @@ import RubricCard from '../components/RubricCard'
 import StudentScoreCard from '../components/StudentScoreCard'
 import SignaturePad from '../components/SignaturePad'
 import { picIsLoggedIn } from '../lib/auth'
-import { deleteObservation, getClasses, getInstrumentVersions, getObservation, getSchoolSettings, getSubjects, getTeachers, saveObservation } from '../lib/store'
+import { deleteObservation, getClasses, getInstrumentVersions, getObservation, getRphSignedUrl, getSchoolSettings, getSubjects, getTeachers, saveObservation } from '../lib/store'
 import type { InstrumentVersion, Observation, SchoolClass, SchoolSettings, Subject, Teacher } from '../lib/types'
 import { achievementLabel, attendanceBucket, formatDateMY, formatTime, levelBucket, scoreSummary } from '../lib/utils'
 import { downloadBlob, generateOfficialPdf } from '../lib/pdf'
@@ -69,6 +69,16 @@ export default function RecordEditor(){
     try{const next={...obs,googleFormStatus:status,updatedAt:new Date().toISOString()};await saveObservation(next);setObs(next);setSaved(true)}catch(e:any){setError(e.message||'Gagal mengubah status Google Form.')}finally{setBusy(false)}
   }
 
+  const openRph=async()=>{
+    if(!obs?.rphPath)return
+    setError('')
+    try{
+      const url=await getRphSignedUrl(obs.rphPath)
+      window.open(url,'_blank','noopener,noreferrer')
+    }catch(e:any){setError(e.message||'Gagal membuka RPH.')}
+  }
+  const formatBytes=(n:number|null)=>!n?'':n>=1024*1024?`${(n/1024/1024).toFixed(1)} MB`:`${Math.max(1,Math.round(n/1024))} KB`
+
   const makePdf=async()=>{
     if(!obs||!instrument||!teacher||!schoolClass||!subject||!school)return
     const v=validateObserver();if(v){setError(v);setSection('observer');return}
@@ -117,6 +127,7 @@ export default function RecordEditor(){
         <div className="field span-2"><label>4. Tajuk/Topik</label><input className="input official-readonly" readOnly value={obs.topic}/></div>
         <div className="field"><label>5. Masa PdP</label><input className="input official-readonly" readOnly value={formatTime(obs.pdpTime)}/></div>
       </div></div>
+      <div className="official-info-block"><h2>Lampiran RPH</h2>{obs.rphPath?<div className="rph-pic-row"><div><strong>📎 {obs.rphFileName||'RPH'}</strong><div className="helper">{formatBytes(obs.rphSizeBytes)}{obs.rphMimeType?` · ${obs.rphMimeType}`:''}</div><div className="helper">Lampiran asal guru · baca sahaja</div></div><button className="btn btn-secondary" onClick={openRph}>Buka / Muat Turun RPH</button></div>:<div className="notice">Guru tidak melampirkan RPH untuk rekod ini.</div>}</div>
     </div>}
 
     {section==='teacher'&&<div className="grid"><div className="notice"><strong>Bahagian E – Rubrik Penilaian Guru.</strong> Skor asal guru adalah baca sahaja.</div><fieldset className="pic-readonly-zone" disabled><div>{instrument.teacherRubric.map(item=><RubricCard key={item.id} item={item} value={obs.selfTeacherScores[item.id]} onChange={()=>{}} scoreLabels={instrument.scoreLabels}/>)}</div></fieldset></div>}

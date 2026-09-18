@@ -21,3 +21,12 @@ Data yang guru hantar dikunci daripada suntingan PIC. PIC hanya melengkapkan Bah
 - PDF Bahagian C: jantina dibulatkan pada perkataan Lelaki/Perempuan, bukan tanda X.
 - PDF Bahagian E dan F: skor dipaparkan sebagai highlight sel kuning lembut dengan bingkai, meniru PDF muat turun sistem rasmi; tiada tanda X atas teks rubrik.
 - Tandatangan pencerap dibersihkan kepada PNG alpha-transparent semasa jana PDF, termasuk tandatangan lama yang pernah mempunyai latar putih.
+
+## v2.5.0 — Lampiran RPH
+
+- Guru boleh melampirkan RPH secara pilihan pada langkah akhir sebelum Hantar kepada PIC.
+- Format: PDF, DOC, DOCX, JPG, PNG; maksimum 10 MB.
+- Fail disimpan dalam bucket private Supabase `rph-uploads`.
+- Selepas rekod dihantar, metadata dan fail RPH dikunci sebagai sebahagian data asal guru.
+- PIC hanya boleh melihat / memuat turun RPH dan RPH dipadam bersama rekod jika PIC memadam rekod.
+- Chrome extension / Google Form tidak diubah.
