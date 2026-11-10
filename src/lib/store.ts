@@ -115,6 +115,7 @@ function mapObservation(row: any): Observation {
     rphSizeBytes: row.rph_size_bytes ?? null,
     status: row.status || 'submitted',
     googleFormStatus: row.google_form_status || 'pending',
+    googleFormOverrides: row.google_form_overrides || {},
     createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString()
   }
@@ -151,7 +152,8 @@ function normalizeLocalObservation(input: any): Observation {
     rphPath: input.rphPath || '',
     rphFileName: input.rphFileName || '',
     rphMimeType: input.rphMimeType || '',
-    rphSizeBytes: input.rphSizeBytes ?? null
+    rphSizeBytes: input.rphSizeBytes ?? null,
+    googleFormOverrides: input.googleFormOverrides || {}
   }
 }
 
@@ -375,6 +377,26 @@ export async function saveObservation(obs: Observation) {
   const list = await getObservations(); const idx = list.findIndex(x => x.id === obs.id)
   if (idx >= 0) list[idx] = obs; else list.unshift(obs)
   save(KEYS.observations, list)
+}
+
+export async function saveGoogleFormOverrides(observationId: string, overrides: Record<string, string>) {
+  if (isSupabaseConfigured && supabase) {
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData.session) throw new Error('Hanya PIC yang log masuk boleh menyimpan pembetulan Google Form.')
+    const { data, error } = await supabase.from('observations')
+      .update({ google_form_overrides: overrides })
+      .eq('id', observationId)
+      .select('id, google_form_overrides')
+      .maybeSingle()
+    if (error) throw error
+    if (!data) throw new Error('Rekod tidak ditemui atau akses PIC tidak dibenarkan.')
+    return
+  }
+  const records = await getObservations()
+  const index = records.findIndex(o => o.id === observationId)
+  if (index < 0) throw new Error('Rekod tidak ditemui.')
+  records[index] = { ...records[index], googleFormOverrides: overrides }
+  save(KEYS.observations, records)
 }
 
 export const RPH_MAX_BYTES = 10 * 1024 * 1024

@@ -1,3 +1,10 @@
+# ISPPK SKSA v2.5.3 — Pembetulan PIC untuk Google Form
+
+- Dashboard PIC > Buka Rekod > tab Google Form menyediakan ruangan pembetulan untuk data yang ditolak oleh Google Forms.
+- Pembetulan disimpan berasingan dalam kolum `observations.google_form_overrides`, tidak mengubah data asal guru, skor rubrik, RPH atau PDF rasmi.
+- Setiap pindaan PIC direkodkan di `master_audit_log`; rekod yang sudah dihantar dikunci.
+- Untuk menggunakan pembetulan semasa autofill, pasang Chrome Extension ISPPK v2.0.1 (fail `background.js` membaca pembetulan tanpa mengubah `content.js` atau mapping).
+
 # ISPPK SKSA v2.5.2 — Universal Date/Time Picker Fix
 
 Fix picker desktop + iPhone/iPad/Android.
