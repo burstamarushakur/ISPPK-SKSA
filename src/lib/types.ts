@@ -176,6 +176,7 @@ export interface Observation {
 
   status: RecordStatus
   googleFormStatus: GoogleFormStatus
+  googleFormOverrides?: Record<string, string>
   createdAt: string
   updatedAt: string
 }
